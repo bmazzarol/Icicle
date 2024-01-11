@@ -1,0 +1,17 @@
+﻿name: Build and Deploy Docs
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: bmazzarol/bmazzarol/.github/actions/build-deploy-docs@main
+        with:
+          docsProjectPath: Icicle.Docs
+          csProjFileName: Icicle.Docs.csproj

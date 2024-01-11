@@ -1,0 +1,23 @@
+﻿name: CD Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release Version
+        required: true
+  release:
+    types: [ published ]
+
+env:
+  PACKAGE_VERSION: ${{ github.event.inputs.version || github.event.release.tag_name }}
+
+jobs:
+  publish:
+    name: Publish to Nuget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bmazzarol/bmazzarol/.github/actions/cd-build@main
+        with:
+          version: ${{ env.PACKAGE_VERSION }}
+          nugetKey: ${{ secrets.NUGET_API_KEY }}

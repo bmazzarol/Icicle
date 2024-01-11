@@ -1,0 +1,22 @@
+﻿name: CI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    
+jobs:
+  build:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    permissions: 
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: bmazzarol/bmazzarol/.github/actions/ci-build@main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          sonarToken: ${{ secrets.SONAR_TOKEN }}
+          sonarProjectKey: bmazzarol_Icicle
