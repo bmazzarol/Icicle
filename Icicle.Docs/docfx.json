@@ -55,8 +55,8 @@
         ],
         "output": "_site",
         "globalMetadata": {
-            "_appName": "Eon",
-            "_appLogoPath": "images/hierarchy-icon.png",
+            "_appName": "Icicle",
+            "_appLogoPath": "images/icicles-icon.png",
             "_appFaviconPath": "images/favicon.ico",
             "_appFooter": "Created By <a href='https://github.com/bmazzarol' target='blank'>Ben Mazzarol</a>"
         }
