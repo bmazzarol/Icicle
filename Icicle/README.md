@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD013 -->
 
-# ![Icicle](https://raw.githubusercontent.com/bmazzarol/Icicle/main/flowchart-icon-small.png) Icicle
+# ![Icicle](https://raw.githubusercontent.com/bmazzarol/Icicle/main/icicles-icon-small.png) Icicle
 
 <!-- markdownlint-enable MD013 -->
 
