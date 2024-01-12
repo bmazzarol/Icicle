@@ -9,11 +9,18 @@
             ]
         },
         {
+            "name": "Node Version",
+            "command": "which",
+            "args": [
+                "node"
+            ]
+        },
+        {
             "name": "Lint Markdown",
             "command": "npx",
             "args": [
                 "markdownlint-cli2",
-                "Frame*/**/*.md",
+                "Icicle*/**/*.md",
                 "*.md",
                 "!LICENSE.md"
             ]

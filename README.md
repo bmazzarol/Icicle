@@ -5,7 +5,8 @@
 
 # Icicle
 
-[:running: **_Getting Started_**](https://bmazzarol.github.io/Icicle/articles/getting-started.html)
+[:running: **_Getting Started_
+**](https://bmazzarol.github.io/Icicle/articles/getting-started.html)
 [:books: **_Documentation_**](https://bmazzarol.github.io/Icicle)
 
 [![Nuget](https://img.shields.io/nuget/v/Icicle)](https://www.nuget.org/packages/Icicle/)
@@ -20,14 +21,18 @@ Structured Concurrency for C# and dotnet
 
 ## Why?
 
-[Structured Concurrency](https://en.wikipedia.org/wiki/Structured_concurrency) simplifies concurrent code by treating
+[Structured Concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)
+simplifies concurrent code by treating
 groups of related tasks as a single unit of work.
 
-Icicle provides a `TaskScope` which can coordinate a group of concurrent child tasks as a single unit.
+Icicle provides a `TaskScope` which can coordinate a group of concurrent child
+tasks as a single unit.
 
-The design draws inspiration from [JEP 453: Structured Concurrency](https://openjdk.org/jeps/453).
+The design draws inspiration
+from [JEP 453: Structured Concurrency](https://openjdk.org/jeps/453).
 
-It effectively suspends (freezes :snowflake:) tasks, returning the user a `ResultHandle` which represents the
+It effectively suspends (freezes :snowflake:) tasks, returning the user
+a `ResultHandle` which represents the
 promised value once the scope has been run.
 
 ```c#
