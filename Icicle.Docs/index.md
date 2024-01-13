@@ -50,7 +50,7 @@ ResultHandle<string> result2 = scope.Add(async token => {
    return "2"; 
 });
 // run all tasks
-RunResult result = await scope.Run();
+RunToken result = await scope.Run();
 // and access their values
 int value1 = result1.Value(result);
 string value2 = result2.Value(result);
