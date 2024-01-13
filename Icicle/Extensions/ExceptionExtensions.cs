@@ -16,4 +16,16 @@ internal static class ExceptionExtensions
 
         return ae;
     }
+
+    internal static bool IsTaskCanceledException(this Exception e)
+    {
+        switch (e)
+        {
+            case TaskCanceledException:
+            case AggregateException { InnerExceptions: [TaskCanceledException] }:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

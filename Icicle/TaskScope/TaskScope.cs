@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.ExceptionServices;
 
 namespace Icicle;
 
@@ -78,6 +79,11 @@ public abstract partial class TaskScope : IDisposable
     /// returning a <see cref="RunToken"/> that can be used as proof to exchange for child task results
     /// </summary>
     /// <param name="timeout">optional timeout to apply to the run</param>
+    /// <param name="throwOnFault">
+    /// flag indicates the <see cref="Run"/> should re-throw any faults;
+    /// if false it will not throw, instead leaving the exception checking to the user via the
+    /// returned handlers; default is true
+    /// </param>
     /// <param name="token">cancellation token</param>
     /// <returns><see cref="RunToken"/></returns>
     /// <exception cref="TaskScopeCompletedException">
@@ -85,6 +91,7 @@ public abstract partial class TaskScope : IDisposable
     /// </exception>
     public virtual async ValueTask<RunToken> Run(
         TimeSpan? timeout = default,
+        bool throwOnFault = true,
         CancellationToken token = default
     )
     {
@@ -105,7 +112,7 @@ public abstract partial class TaskScope : IDisposable
 
         try
         {
-            while (!token.IsCancellationRequested && !_handles.IsEmpty)
+            while (!_cancellationTokenSource.Token.IsCancellationRequested && !_handles.IsEmpty)
             {
                 await OnRun(
                     TaskEnumerable(_cancellationTokenSource.Token),
@@ -113,13 +120,24 @@ public abstract partial class TaskScope : IDisposable
                 );
             }
         }
-        catch
+        catch (Exception e) when (e.IsTaskCanceledException())
+        {
+            // swallow cancellation
+        }
+        catch (Exception e)
         {
             IsFaulted = true;
+            if (throwOnFault)
+            {
+                ExceptionDispatchInfo.Throw(e.TryUnwrap());
+            }
         }
         finally
         {
-            await _cancellationTokenSource.CancelAsync();
+            if (!_cancellationTokenSource.IsCancellationRequested)
+            {
+                await _cancellationTokenSource.CancelAsync();
+            }
         }
 
         IsScopeComplete = true;

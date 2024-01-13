@@ -146,7 +146,7 @@ public class WhenAllTests
 
         scope.IsFaulted.Should().BeFalse();
 
-        var result = await scope.Run();
+        var result = await scope.Run(throwOnFault: false);
 
         scope.IsFaulted.Should().BeTrue();
 
