@@ -3,6 +3,12 @@ items:
     href: index.md
   - name: Getting Started
     href: articles/getting-started.md
+  - name: When All
+    href: articles/when-all.md
+  - name: When Any
+    href: articles/when-any.md
+  - name: Build Your Own
+    href: articles/custom.md
   - name: .NET API Docs
     href: api/toc.yml
     expanded: true
