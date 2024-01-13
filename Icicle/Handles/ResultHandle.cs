@@ -68,15 +68,13 @@ public sealed class ResultHandle<T> : BaseHandle
 
         switch (_futureTask)
         {
-            case { IsCanceled: true }:
-                throw new TaskCanceledException();
             case { IsFaulted: true } ft:
                 ExceptionDispatchInfo.Throw(ft.AsTask().Exception!.TryUnwrap());
                 return default; // unreachable
             case { IsCompletedSuccessfully: true } st:
                 return st.Result;
             default:
-                throw new InvalidOperationException();
+                throw new TaskCanceledException();
         }
     }
 

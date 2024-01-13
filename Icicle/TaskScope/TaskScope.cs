@@ -101,7 +101,7 @@ public abstract partial class TaskScope : IDisposable
 
         try
         {
-            while (!_handles.IsEmpty)
+            while (!token.IsCancellationRequested && !_handles.IsEmpty)
             {
                 await OnRun(
                     TaskEnumerable(_cancellationTokenSource.Token),
@@ -124,7 +124,7 @@ public abstract partial class TaskScope : IDisposable
 
     private IEnumerable<ValueTask> TaskEnumerable(CancellationToken token)
     {
-        while (_handles.TryPop(out var handle))
+        while (!token.IsCancellationRequested && _handles.TryPop(out var handle))
         {
             yield return handle.Run(token);
         }
