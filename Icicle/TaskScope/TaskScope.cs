@@ -37,9 +37,7 @@ public abstract partial class TaskScope : IDisposable
     {
         if (IsScopeComplete)
         {
-            throw new InvalidOperationException(
-                $"The current `{nameof(TaskScope)}` has already completed"
-            );
+            throw TaskScopeCompletedException.Instance;
         }
     }
 
@@ -49,6 +47,9 @@ public abstract partial class TaskScope : IDisposable
     /// <param name="func">function to run</param>
     /// <typeparam name="T">some T</typeparam>
     /// <returns><see cref="ResultHandle{T}"/></returns>
+    /// <exception cref="TaskScopeCompletedException">
+    /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
+    /// </exception>
     public virtual ResultHandle<T> Add<T>(Func<CancellationToken, ValueTask<T>> func)
     {
         ThrowIfScopeIsComplete();
@@ -61,6 +62,9 @@ public abstract partial class TaskScope : IDisposable
     /// Adds a `action` to the scope returning a <see cref="ActionHandle"/>
     /// </summary>
     /// <param name="action">action to run</param>
+    /// <exception cref="TaskScopeCompletedException">
+    /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
+    /// </exception>
     public virtual ActionHandle Add(Func<CancellationToken, ValueTask> action)
     {
         ThrowIfScopeIsComplete();
@@ -76,7 +80,9 @@ public abstract partial class TaskScope : IDisposable
     /// <param name="timeout">optional timeout to apply to the run</param>
     /// <param name="token">cancellation token</param>
     /// <returns><see cref="RunToken"/></returns>
-    /// <exception cref="InvalidOperationException">thrown if <see cref="Run"/> is called more than once</exception>
+    /// <exception cref="TaskScopeCompletedException">
+    /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
+    /// </exception>
     public virtual async ValueTask<RunToken> Run(
         TimeSpan? timeout = default,
         CancellationToken token = default
@@ -84,9 +90,7 @@ public abstract partial class TaskScope : IDisposable
     {
         if (!_isRunTriggered.TrySet(value: true))
         {
-            throw new InvalidOperationException(
-                $"The current `{nameof(TaskScope)}` has already been `{nameof(Run)}`"
-            );
+            throw TaskScopeCompletedException.Instance;
         }
 
         _cancellationTokenSource ??= CancellationTokenSource.CreateLinkedTokenSource(

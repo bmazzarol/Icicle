@@ -60,8 +60,10 @@ public class WhenAllTests
         scope.IsRunTriggered.Should().BeFalse();
         await scope.Run();
         scope.IsRunTriggered.Should().BeTrue();
-        var exception = await ThrowsAsync<InvalidOperationException>(async () => await scope.Run());
-        exception.Message.Should().Be("The current `TaskScope` has already been `Run`");
+        var exception = await ThrowsAsync<TaskScopeCompletedException>(
+            async () => await scope.Run()
+        );
+        exception.Message.Should().Be("The current `TaskScope` has already completed");
     }
 
     [Fact(DisplayName = "Many `Add` operations can be done windowed")]
@@ -179,15 +181,15 @@ public class WhenAllTests
         var token1 = await scope1.Run();
         var token2 = await scope2.Run();
 
-        Throws<InvalidOperationException>(() => st1.Value(token2))
+        Throws<InvalidRunTokenException>(() => st1.Value(token2))
             .Message.Should()
             .Be(
-                "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this `ResultHandle`?"
+                "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this handle?"
             );
-        Throws<InvalidOperationException>(() => st2.ThrowIfFaulted(token1))
+        Throws<InvalidRunTokenException>(() => st2.ThrowIfFaulted(token1))
             .Message.Should()
             .Be(
-                "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this `ActionHandle`?"
+                "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this handle?"
             );
     }
 
@@ -241,7 +243,7 @@ public class WhenAllTests
     {
         using var scope = new TaskScope.WhenAll();
         await scope.Run();
-        Throws<InvalidOperationException>(
+        Throws<TaskScopeCompletedException>(
             () =>
                 scope.Add(async token =>
                 {
