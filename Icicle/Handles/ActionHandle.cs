@@ -6,7 +6,7 @@ namespace Icicle;
 /// Represents a handle to a action after a <see cref="TaskScope.Run"/> from a delegate added via
 /// <see cref="TaskScope.Add"/>
 /// </summary>
-public sealed class ActionHandle
+public sealed class ActionHandle : BaseHandle
 {
     private static InvalidOperationException InvalidTokenException =>
         new(
@@ -14,11 +14,13 @@ public sealed class ActionHandle
         );
 
     private readonly RunToken _runToken;
-    internal ValueTask? FutureAction;
+    private readonly Func<CancellationToken, ValueTask> _lazyTask;
+    private ValueTask? _futureAction;
 
-    internal ActionHandle(RunToken runToken)
+    internal ActionHandle(RunToken runToken, Func<CancellationToken, ValueTask> lazyTask)
     {
         _runToken = runToken;
+        _lazyTask = lazyTask;
     }
 
     private void ThrowOnInvalidToken(RunToken token)
@@ -38,7 +40,7 @@ public sealed class ActionHandle
     {
         ThrowOnInvalidToken(token);
 
-        return FutureAction switch
+        return _futureAction switch
         {
             { IsCompletedSuccessfully: true } => HandleState.Succeeded,
             { IsFaulted: true } => HandleState.Faulted,
@@ -55,7 +57,7 @@ public sealed class ActionHandle
     {
         ThrowOnInvalidToken(token);
 
-        if (FutureAction is { IsFaulted: true } ft)
+        if (_futureAction is { IsFaulted: true } ft)
         {
             ExceptionDispatchInfo.Throw(ft.AsTask().Exception!.TryUnwrap());
         }
@@ -69,6 +71,12 @@ public sealed class ActionHandle
     {
         ThrowOnInvalidToken(token);
 
-        return FutureAction!.Value.AsTask();
+        return _futureAction!.Value.AsTask();
+    }
+
+    internal override ValueTask Run(CancellationToken token)
+    {
+        _futureAction = _lazyTask(token);
+        return _futureAction.Value;
     }
 }

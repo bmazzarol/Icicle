@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 
 namespace Icicle;
 
-using Thunks = ConcurrentStack<Func<CancellationToken, ValueTask>>;
+using Handles = ConcurrentStack<BaseHandle>;
 
 /// <summary>
 /// Core abstraction for structured concurrency.
@@ -14,7 +14,7 @@ using Thunks = ConcurrentStack<Func<CancellationToken, ValueTask>>;
 public abstract partial class TaskScope : IDisposable
 {
     private readonly RunToken _runToken = new();
-    private readonly Thunks _thunks = [];
+    private readonly Handles _handles = [];
     private CancellationTokenSource? _cancellationTokenSource;
     private int _isRunTriggered = default;
 
@@ -52,13 +52,8 @@ public abstract partial class TaskScope : IDisposable
     public virtual ResultHandle<T> Add<T>(Func<CancellationToken, ValueTask<T>> func)
     {
         ThrowIfScopeIsComplete();
-
-        var handle = new ResultHandle<T>(_runToken);
-        _thunks.Push(async token =>
-        {
-            handle.FutureTask = func(token);
-            await handle.FutureTask.Value;
-        });
+        var handle = new ResultHandle<T>(_runToken, func);
+        _handles.Push(handle);
         return handle;
     }
 
@@ -69,13 +64,8 @@ public abstract partial class TaskScope : IDisposable
     public virtual ActionHandle Add(Func<CancellationToken, ValueTask> action)
     {
         ThrowIfScopeIsComplete();
-
-        var handle = new ActionHandle(_runToken);
-        _thunks.Push(async token =>
-        {
-            handle.FutureAction = action(token);
-            await handle.FutureAction.Value;
-        });
+        var handle = new ActionHandle(_runToken, action);
+        _handles.Push(handle);
         return handle;
     }
 
@@ -111,7 +101,7 @@ public abstract partial class TaskScope : IDisposable
 
         try
         {
-            while (!_thunks.IsEmpty)
+            while (!_handles.IsEmpty)
             {
                 await OnRun(
                     TaskEnumerable(_cancellationTokenSource.Token),
@@ -134,9 +124,9 @@ public abstract partial class TaskScope : IDisposable
 
     private IEnumerable<ValueTask> TaskEnumerable(CancellationToken token)
     {
-        while (_thunks.TryPop(out var thunk))
+        while (_handles.TryPop(out var handle))
         {
-            yield return thunk(token);
+            yield return handle.Run(token);
         }
     }
 
@@ -162,7 +152,7 @@ public abstract partial class TaskScope : IDisposable
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
-        _thunks.Clear();
+        _handles.Clear();
     }
 
     /// <inheritdoc />

@@ -9,7 +9,7 @@ namespace Icicle;
 /// <see cref="TaskScope.Add"/>
 /// </summary>
 /// <typeparam name="T">some result</typeparam>
-public sealed class ResultHandle<T>
+public sealed class ResultHandle<T> : BaseHandle
 {
     private static InvalidOperationException InvalidTokenException =>
         new(
@@ -17,11 +17,13 @@ public sealed class ResultHandle<T>
         );
 
     private readonly RunToken _runToken;
-    internal ValueTask<T>? FutureTask;
+    private readonly Func<CancellationToken, ValueTask<T>> _lazyTask;
+    private ValueTask<T>? _futureTask;
 
-    internal ResultHandle(RunToken runToken)
+    internal ResultHandle(RunToken runToken, Func<CancellationToken, ValueTask<T>> lazyTask)
     {
         _runToken = runToken;
+        _lazyTask = lazyTask;
     }
 
     private void ThrowOnInvalidToken(RunToken token)
@@ -41,7 +43,7 @@ public sealed class ResultHandle<T>
     {
         ThrowOnInvalidToken(token);
 
-        return FutureTask switch
+        return _futureTask switch
         {
             { IsCompletedSuccessfully: true } => HandleState.Succeeded,
             { IsFaulted: true } => HandleState.Faulted,
@@ -64,7 +66,7 @@ public sealed class ResultHandle<T>
     {
         ThrowOnInvalidToken(token);
 
-        switch (FutureTask)
+        switch (_futureTask)
         {
             case { IsCanceled: true }:
                 throw new TaskCanceledException();
@@ -95,7 +97,7 @@ public sealed class ResultHandle<T>
 
         ThrowIfFaulted(token);
 
-        if (FutureTask is { IsCompletedSuccessfully: true } st)
+        if (_futureTask is { IsCompletedSuccessfully: true } st)
         {
             return st.Result;
         }
@@ -112,7 +114,7 @@ public sealed class ResultHandle<T>
     {
         ThrowOnInvalidToken(token);
 
-        if (FutureTask is { IsFaulted: true } ft)
+        if (_futureTask is { IsFaulted: true } ft)
         {
             ExceptionDispatchInfo.Throw(ft.AsTask().Exception!.TryUnwrap());
         }
@@ -126,6 +128,14 @@ public sealed class ResultHandle<T>
     {
         ThrowOnInvalidToken(token);
 
-        return FutureTask!.Value.AsTask();
+        return _futureTask!.Value.AsTask();
     }
+
+#pragma warning disable AsyncFixer01
+    internal override async ValueTask Run(CancellationToken token)
+    {
+        _futureTask = _lazyTask(token);
+        await _futureTask.Value;
+    }
+#pragma warning restore AsyncFixer01
 }
