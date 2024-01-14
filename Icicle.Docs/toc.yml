@@ -6,7 +6,9 @@ items:
   - name: When All
     href: articles/when-all.md
   - name: When Any
-    href: articles/when-any.md
+    href: articles/when-any.md  
+  - name: Configuration
+    href: articles/configuration.md
   - name: Build Your Own
     href: articles/custom.md
   - name: .NET API Docs

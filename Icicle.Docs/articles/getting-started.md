@@ -13,38 +13,11 @@ Now a @Icicle.TaskScope can be created.
 
 A `fully parallel` scope looks like this,
 
-```c#
-// within a using block, create a scope and configure it
-using var scope = new TaskScope.WhenAll(); // run all tasks at the same time
-// now add tasks to the scope to run
-ActionHandle t1 = scope.Add(async ct => 
-    await Task.Delay(TimSpan.FromSeconds(1), ct));
-ActionHandle t2 = scope.Add(async ct => 
-    await Task.Delay(TimSpan.FromSeconds(1), ct));
-ActionHandle t3 = scope.Add(async ct => 
-    await Task.Delay(TimSpan.FromSeconds(1), ct));
-// now run them all; should run for around a second
-RunToken token = await scope.Run();
-```
+[!code-csharp[Example1](../../Icicle.Tests/Examples/GettingStarted.cs#Example1)]
 
 Values can also be returned from the added tasks,
 
-```c#
-using var scope = new TaskScope.WhenAll();
-// added tasks 
-ValueHandle<string> t1 = scope.Add(async ct => {
-    await Task.Delay(TimSpan.FromSeconds(1), ct);
-    return "Hello";
-});
-ValueHandle<string> t2 = scope.Add(async ct => {
-    await Task.Delay(TimSpan.FromSeconds(1), ct);
-    return "World";
-});
-// now run them all; should run for around a second
-var token = await scope.Run();
-// set the value to "Hello World"
-string result = $"{t1.Value(token)} {t2.Value(token)}"; 
-```
+[!code-csharp[Example2](../../Icicle.Tests/Examples/GettingStarted.cs#Example2)]
 
 The usage rules for @Icicle.TaskScope are as follows,
 
@@ -53,23 +26,7 @@ The usage rules for @Icicle.TaskScope are as follows,
    @Icicle.TaskScope.Run* has completed (nested calls to @Icicle.TaskScope.Add*
    are supported)
 
-   ```c#
-   using var scope = new TaskScope.WhenAll();
-   // keep adding
-   var t1 = scope.Add(async ct => 
-     await Task.Delay(TimSpan.FromSeconds(1), ct));   
-   var t2 = scope.Add(async ct => 
-     await Task.Delay(TimSpan.FromSeconds(1), ct));   
-   var t3 = scope.Add(async ct => {
-     await Task.Delay(TimSpan.FromSeconds(1), ct)
-     // and nest as well
-     _ = scope.Add(async ct => 
-        await Task.Delay(TimSpan.FromSeconds(1), ct));
-   });
-   // run them
-   var token = await scope.Run();
-   // cannot call Add or Run from this point on 
-   ```
+   [!code-csharp[Example3](../../Icicle.Tests/Examples/GettingStarted.cs#Example3)]
 
 2. @Icicle.TaskScope.Run* can only be called once
 
@@ -84,18 +41,6 @@ This enforces the following semantics,
   started never start
 * Values can be accessed from @Icicle.ResultHandle`1 and
   @Icicle.ActionHandle after @Icicle.TaskScope.Run*
-  
-  ```c#
-  using var scope = new TaskScope.WhenAll(); 
-  ValueHandle<string> t1 = scope.Add(async ct => {
-    await Task.Delay(TimSpan.FromSeconds(1), ct);
-    return "Hello";
-  });
-  RunToken token = 
-    await scope.Run(); // get token here
-  string result = t1.Value(
-    // pass it here
-    token
-  );
-  ```
+
+  [!code-csharp[Example4](../../Icicle.Tests/Examples/GettingStarted.cs#Example4)]
   

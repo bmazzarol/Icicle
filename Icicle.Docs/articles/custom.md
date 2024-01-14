@@ -10,23 +10,4 @@ which gets passed all the tasks to run.
 An example of a custom task scope that runs tasks in sequence
 is as follows,
 
-```c#
-public sealed class SerialExecution : TaskScope
-{
-    /// <inheritdoc />
-    protected override async ValueTask OnRun(
-        IEnumerable<ValueTask> tasks,
-        CancellationToken token
-    )
-    {
-        foreach(var task in tasks)
-        {
-            if(token.IsCancellationRequested)
-            {
-                break;
-            }
-            await task;
-        }
-    }
-}
-```
+[!code-csharp[Example1](../../Icicle.Tests/Examples/SerialExecution.cs#Example1)]
