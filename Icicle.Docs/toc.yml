@@ -10,7 +10,9 @@ items:
   - name: Configuration
     href: articles/configuration.md
   - name: Build Your Own
-    href: articles/custom.md
+    href: articles/custom.md  
+  - name: Performance
+    href: articles/performance.md
   - name: .NET API Docs
     href: api/toc.yml
     expanded: true
