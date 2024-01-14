@@ -5,10 +5,12 @@
 It adds the following overhead,
 
 1. A task scope is allocated
-2. A task scope allocates a concurrent queue
-3. Each child task allocates a handle and a place in the concurrent queue
-4. A task scope run allocates a cancellation token source
-5. A task scope run allocates an enumerator
+   1. A task scope allocates a concurrent queue
+   2. A task scope allocates a run handle
+2. Each child task allocates a handle and a place in the concurrent queue
+3. A task scope run allocates,
+   1. a cancellation token source
+   2. an enumerator
 
 Compared with a simple Task.WhenAll it produces the
 following,

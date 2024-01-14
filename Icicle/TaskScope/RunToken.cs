@@ -1,8 +1,8 @@
 namespace Icicle;
 
 /// <summary>
-/// Provides a proof that <see cref="TaskScope.Run"/> was done, this can be exchanged for
-/// values within <see cref="ResultHandle{T}"/> or <see cref="ActionHandle"/> via calls to their value methods
+/// Provides proof that <see cref="TaskScope.Run"/> was executed, which can then be exchanged for
+/// the result of that execute with <see cref="ResultHandle{T}"/> or <see cref="ResultHandle"/>
 /// </summary>
 public sealed class RunToken
 {

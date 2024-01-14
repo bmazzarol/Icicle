@@ -20,19 +20,19 @@ public abstract partial class TaskScope : IDisposable
     private int _isRunTriggered = default;
 
     /// <summary>
-    /// Returns true if the <see cref="Run"/> has been called
+    /// Returns true if <see cref="Run"/> has been called
     /// </summary>
     public bool IsRunTriggered => _isRunTriggered.Value();
 
     /// <summary>
-    /// Returns true if the <see cref="Run"/> has been called and has completed
+    /// Returns true if <see cref="Run"/> has completed
     /// </summary>
     public bool IsScopeComplete { get; private set; }
 
     /// <summary>
-    /// Returns true if the <see cref="Run"/> has been called and has completed
+    /// Returns true if <see cref="Run"/> has faulted
     /// </summary>
-    public bool IsFaulted { get; private set; }
+    public bool IsScopeFaulted { get; private set; }
 
     private void ThrowIfScopeIsComplete()
     {
@@ -43,33 +43,38 @@ public abstract partial class TaskScope : IDisposable
     }
 
     /// <summary>
-    /// Adds a `func` to the scope returning a <see cref="ResultHandle{T}"/>
+    /// Adds a child task to the scope returning a <see cref="ResultHandle{T}"/>
     /// </summary>
-    /// <param name="func">function to run</param>
+    /// <param name="childTask">child task</param>
     /// <typeparam name="T">some T</typeparam>
-    /// <returns><see cref="ResultHandle{T}"/></returns>
+    /// <returns>
+    /// <see cref="ResultHandle{T}"/> representing the result of executing the child task
+    /// </returns>
     /// <exception cref="TaskScopeCompletedException">
-    /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
+    /// if <see cref="Run"/> has already completed on the current <see cref="TaskScope"/>
     /// </exception>
-    public virtual ResultHandle<T> Add<T>(Func<CancellationToken, ValueTask<T>> func)
+    public virtual ResultHandle<T> Add<T>(Func<CancellationToken, ValueTask<T>> childTask)
     {
         ThrowIfScopeIsComplete();
-        var handle = new ResultHandle<T>(_runToken, func);
+        var handle = new ResultHandle<T>(_runToken, childTask);
         _handles.Push(handle);
         return handle;
     }
 
     /// <summary>
-    /// Adds a `action` to the scope returning a <see cref="ActionHandle"/>
+    /// Adds a child task to the scope returning a <see cref="ResultHandle"/>
     /// </summary>
-    /// <param name="action">action to run</param>
+    /// <param name="childTask">child task</param>
+    /// <returns>
+    /// <see cref="ResultHandle"/> representing the result of executing the child task
+    /// </returns>
     /// <exception cref="TaskScopeCompletedException">
-    /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
+    /// if <see cref="Run"/> has already completed on the current <see cref="TaskScope"/>
     /// </exception>
-    public virtual ActionHandle Add(Func<CancellationToken, ValueTask> action)
+    public virtual ResultHandle Add(Func<CancellationToken, ValueTask> childTask)
     {
         ThrowIfScopeIsComplete();
-        var handle = new ActionHandle(_runToken, action);
+        var handle = new ResultHandle(_runToken, childTask);
         _handles.Push(handle);
         return handle;
     }
@@ -77,12 +82,20 @@ public abstract partial class TaskScope : IDisposable
     /// <summary>
     /// Runs all added child tasks;
     /// returning a <see cref="RunToken"/> that can be used as proof to exchange for child task results
+    /// via <see cref="ResultHandle{T}"/> and <see cref="ResultHandle"/>
     /// </summary>
     /// <param name="options">configuration options for <see cref="Run"/></param>
     /// <param name="token">cancellation token</param>
-    /// <returns><see cref="RunToken"/></returns>
+    /// <returns>
+    /// <see cref="RunToken"/> respresenting the completion of the <see cref="TaskScope"/>.
+    /// This can be exchanged with <see cref="ResultHandle{T}"/> and <see cref="ResultHandle"/>
+    /// for the result of the child task completed.
+    /// </returns>
     /// <exception cref="TaskScopeCompletedException">
     /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
+    /// </exception>
+    /// <exception cref="Exception">
+    /// if any of the child tasks fault and <see cref="RunOptions.ThrowOnFault"/> is `true`
     /// </exception>
     public virtual async ValueTask<RunToken> Run(
         RunOptions? options = default,
@@ -123,7 +136,7 @@ public abstract partial class TaskScope : IDisposable
         }
         catch (Exception e)
         {
-            IsFaulted = true;
+            IsScopeFaulted = true;
             if (runOptions.ThrowOnFault)
             {
                 ExceptionDispatchInfo.Throw(e.TryUnwrap());
@@ -141,7 +154,7 @@ public abstract partial class TaskScope : IDisposable
         return _runToken;
     }
 
-    private async Task RunBounded(RunOptions options, CancellationToken token)
+    private async ValueTask RunBounded(RunOptions options, CancellationToken token)
     {
         while (!token.IsCancellationRequested && !_handles.IsEmpty)
         {
@@ -164,7 +177,7 @@ public abstract partial class TaskScope : IDisposable
         }
     }
 
-    private async Task RunUnbounded(RunOptions options, CancellationToken token)
+    private async ValueTask RunUnbounded(RunOptions options, CancellationToken token)
     {
         while (true)
         {
@@ -196,7 +209,6 @@ public abstract partial class TaskScope : IDisposable
     /// <summary>
     /// Called when a <see cref="Run"/> is requested on the <see cref="TaskScope"/>
     /// </summary>
-    /// <remarks>this method is expected to raise errors</remarks>
     /// <param name="tasks">lazy <see cref="ValueTask"/>s to execute</param>
     /// <param name="options">run options currently applied</param>
     /// <param name="token">cancellation token</param>
@@ -234,6 +246,11 @@ public abstract partial class TaskScope : IDisposable
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
         _handles.Clear();
+
+        if (!IsRunTriggered)
+        {
+            throw TaskScopeNotRunException.Instance;
+        }
     }
 
     /// <inheritdoc />

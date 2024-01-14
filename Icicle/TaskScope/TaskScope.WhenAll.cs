@@ -28,16 +28,16 @@ public abstract partial class TaskScope
             CancellationToken token
         )
         {
-            if (_windowSize is not { } size)
-            {
-                await ValueTaskEx.WhenAll(tasks);
-            }
-            else
+            if (_windowSize is { } size)
             {
                 foreach (var window in tasks.Chunk(size))
                 {
                     await ValueTaskEx.WhenAll(window);
                 }
+            }
+            else
+            {
+                await ValueTaskEx.WhenAll(tasks);
             }
         }
     }

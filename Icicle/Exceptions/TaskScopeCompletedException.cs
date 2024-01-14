@@ -4,7 +4,7 @@ namespace Icicle;
 
 /// <summary>
 /// Thrown when trying to modify a <see cref="TaskScope"/> after it has
-/// had <see cref="TaskScope.Run"/> called
+/// had <see cref="TaskScope.Run"/> called on it
 /// </summary>
 public sealed class TaskScopeCompletedException : Exception
 {

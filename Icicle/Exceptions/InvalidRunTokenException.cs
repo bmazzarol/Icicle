@@ -4,7 +4,7 @@ namespace Icicle;
 
 /// <summary>
 /// Thrown when a <see cref="RunToken"/> passed to a handle did not match
-/// the handle <see cref="RunToken"/>; ie. the <see cref="TaskScope"/> that produced
+/// the handle's <see cref="RunToken"/>; ie. the <see cref="TaskScope"/> that produced
 /// the <see cref="RunToken"/> was not the one that the handle was produced from
 /// </summary>
 public sealed class InvalidRunTokenException : Exception

@@ -38,9 +38,9 @@ public class WhenAnyTests
         var t3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(200), ct));
         var t4 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(1), ct));
         var token = await scope.Run();
-        t1.GetState(token).Should().Be(HandleState.Terminated);
-        t2.GetState(token).Should().Be(HandleState.Terminated);
-        t3.GetState(token).Should().Be(HandleState.Terminated);
-        t4.GetState(token).Should().Be(HandleState.Succeeded);
+        t1.GetState(token).Should().Be(ResultHandleState.Terminated);
+        t2.GetState(token).Should().Be(ResultHandleState.Terminated);
+        t3.GetState(token).Should().Be(ResultHandleState.Terminated);
+        t4.GetState(token).Should().Be(ResultHandleState.Succeeded);
     }
 }

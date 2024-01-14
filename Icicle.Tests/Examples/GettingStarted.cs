@@ -10,9 +10,9 @@ public class GettingStarted
         // within a using block, create a scope and configure it
         using TaskScope scope = new TaskScope.WhenAll(); // run all tasks at the same time
         // now add tasks to the scope to run
-        ActionHandle t1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
-        ActionHandle t2 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
-        ActionHandle t3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle t1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle t2 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle t3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
         // now run them all; should run for around a second
         RunToken token = await scope.Run();
 
@@ -51,9 +51,9 @@ public class GettingStarted
 
         using TaskScope scope = new TaskScope.WhenAll();
         // keep adding
-        ActionHandle t1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
-        ActionHandle t2 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
-        ActionHandle t3 = scope.Add(async ct =>
+        ResultHandle t1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle t2 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle t3 = scope.Add(async ct =>
         {
             await Task.Delay(TimeSpan.FromSeconds(1), ct);
             // and nest as well

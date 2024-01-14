@@ -28,7 +28,7 @@ The usage rules for @Icicle.TaskScope are as follows,
 
    [!code-csharp[Example3](../../Icicle.Tests/Examples/GettingStarted.cs#Example3)]
 
-2. @Icicle.TaskScope.Run* can only be called once
+2. @Icicle.TaskScope.Run* can only be called once, and must be called
 
 This enforces the following semantics,
 

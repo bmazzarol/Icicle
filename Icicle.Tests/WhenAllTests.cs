@@ -1,5 +1,3 @@
-using static Xunit.Assert;
-
 namespace Icicle.Tests;
 
 public class WhenAllTests
@@ -35,14 +33,14 @@ public class WhenAllTests
         st3.ThrowIfFaulted(result);
         st4.ThrowIfFaulted(result);
 
-        st1.GetState(result).Should().Be(HandleState.Succeeded);
-        st4.GetState(result).Should().Be(HandleState.Succeeded);
+        st1.GetState(result).Should().Be(ResultHandleState.Succeeded);
+        st4.GetState(result).Should().Be(ResultHandleState.Succeeded);
 
         st1.Value(result).Should().Be(1);
-        (await st1.AsTask(result)).Should().Be(1);
+        (await st1.AsValueTask(result)).Should().Be(1);
         st2.Value(result).Should().Be("2");
         st3.Value(result).Should().Be(3.0);
-        await st4.AsTask(result);
+        await st4.AsValueTask(result);
     }
 
     [Fact(DisplayName = "`Run` with no `Add` calls is a no-op")]
@@ -117,10 +115,10 @@ public class WhenAllTests
         cts.Cancel();
         var result = await scope.Run(token: cts.Token);
 
-        st1.GetState(result).Should().Be(HandleState.Terminated);
+        st1.GetState(result).Should().Be(ResultHandleState.Terminated);
         Throws<TaskCanceledException>(() => st1.Value(result));
-        st2.GetState(result).Should().Be(HandleState.Terminated);
-        st3.GetState(result).Should().Be(HandleState.Terminated);
+        st2.GetState(result).Should().Be(ResultHandleState.Terminated);
+        st3.GetState(result).Should().Be(ResultHandleState.Terminated);
     }
 
     [Fact(DisplayName = "One failure will cancel all other tasks")]
@@ -144,15 +142,15 @@ public class WhenAllTests
             return 0;
         });
 
-        scope.IsFaulted.Should().BeFalse();
+        scope.IsScopeFaulted.Should().BeFalse();
 
         var result = await scope.Run(new TaskScope.RunOptions { ThrowOnFault = false });
 
-        scope.IsFaulted.Should().BeTrue();
+        scope.IsScopeFaulted.Should().BeTrue();
 
-        st2.GetState(result).Should().Be(HandleState.Terminated);
-        st3.GetState(result).Should().Be(HandleState.Terminated);
-        stFail.GetState(result).Should().Be(HandleState.Faulted);
+        st2.GetState(result).Should().Be(ResultHandleState.Terminated);
+        st3.GetState(result).Should().Be(ResultHandleState.Terminated);
+        stFail.GetState(result).Should().Be(ResultHandleState.Faulted);
 
         var operationException = Throws<InvalidOperationException>(
             () => stFail.ThrowIfFaulted(result)
@@ -238,8 +236,8 @@ public class WhenAllTests
         );
 
         // all value handles will be terminated
-        st1.GetState(result).Should().Be(HandleState.Terminated);
-        st2.GetState(result).Should().Be(HandleState.Terminated);
+        st1.GetState(result).Should().Be(ResultHandleState.Terminated);
+        st2.GetState(result).Should().Be(ResultHandleState.Terminated);
     }
 
     [Fact(DisplayName = "`Add` after `Run` throws")]
@@ -283,7 +281,7 @@ public class WhenAllTests
         });
         // start the run operation in an unbounded manner
         var token = await scope.Run(new TaskScope.RunOptions { Bounded = false });
-        action.GetState(token).Should().Be(HandleState.Succeeded);
+        action.GetState(token).Should().Be(ResultHandleState.Succeeded);
     }
 
     [Fact(DisplayName = "`TaskScope` can collect all failures")]
@@ -305,11 +303,11 @@ public class WhenAllTests
         var token = await scope.Run(
             new TaskScope.RunOptions { ThrowOnFault = false, ContinueOnFault = true }
         );
-        a1.GetState(token).Should().NotBe(HandleState.Faulted);
-        a2.GetState(token).Should().Be(HandleState.Faulted);
+        a1.GetState(token).Should().NotBe(ResultHandleState.Faulted);
+        a2.GetState(token).Should().Be(ResultHandleState.Faulted);
         Throws<InvalidOperationException>(() => a2.ThrowIfFaulted(token));
-        a3.GetState(token).Should().NotBe(HandleState.Faulted);
-        a4.GetState(token).Should().Be(HandleState.Faulted);
+        a3.GetState(token).Should().NotBe(ResultHandleState.Faulted);
+        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
     }
 
     [Fact(DisplayName = "`TaskScope` can collect all failures while unbounded")]
@@ -340,9 +338,18 @@ public class WhenAllTests
                 ContinueOnFault = true
             }
         );
-        a1.GetState(token).Should().Be(HandleState.Succeeded);
-        a2.GetState(token).Should().Be(HandleState.Faulted);
-        a3.GetState(token).Should().Be(HandleState.Succeeded);
-        a4.GetState(token).Should().Be(HandleState.Faulted);
+        a1.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        a2.GetState(token).Should().Be(ResultHandleState.Faulted);
+        a3.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
+    }
+
+    [Fact(DisplayName = "`TaskScope` must be run before its disposed")]
+    public void Case15()
+    {
+        var scope = new TaskScope.WhenAll();
+        Throws<TaskScopeNotRunException>(() => scope.Dispose())
+            .Message.Should()
+            .Be("The current `TaskScope` has not had `Run` called on it");
     }
 }

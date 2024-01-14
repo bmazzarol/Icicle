@@ -11,13 +11,13 @@ public class Configuration
 
         using TaskScope scope = new TaskScope.WhenAll();
         // runs for 2 seconds
-        ActionHandle action = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(2), ct));
+        ResultHandle result = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(2), ct));
         // timeout after 1 second
         RunToken token = await scope.Run(
             new TaskScope.RunOptions { Timeout = TimeSpan.FromSeconds(1) }
         );
         // results in the action getting terminated
-        action.GetState(token).Should().Be(HandleState.Terminated);
+        result.GetState(token).Should().Be(ResultHandleState.Terminated);
 
         #endregion
     }
@@ -31,7 +31,7 @@ public class Configuration
         var queue = new ConcurrentQueue<string>();
 
         // one action adds child tasks at intervals
-        ActionHandle workAction = scope.Add(async ct =>
+        ResultHandle workResult = scope.Add(async ct =>
         {
             while (!ct.IsCancellationRequested)
             {
@@ -46,7 +46,7 @@ public class Configuration
             }
         });
         // second action runs for a given period of time then cancels the scope
-        ActionHandle monitorAction = scope.Add(async ct =>
+        ResultHandle monitorResult = scope.Add(async ct =>
         {
             // wait for some work to get done
             await Task.Delay(TimeSpan.FromSeconds(1), ct);
@@ -58,8 +58,8 @@ public class Configuration
         // and it should run for 1 second
         RunToken token = await scope.Run(new TaskScope.RunOptions { Bounded = false });
         // both tasks are complete
-        workAction.GetState(token).Should().NotBe(HandleState.Faulted);
-        monitorAction.GetState(token).Should().NotBe(HandleState.Faulted);
+        workResult.GetState(token).Should().NotBe(ResultHandleState.Faulted);
+        monitorResult.GetState(token).Should().NotBe(ResultHandleState.Faulted);
         // we have done work
         queue.Should().NotBeEmpty().And.HaveCountGreaterOrEqualTo(10);
 
@@ -74,23 +74,23 @@ public class Configuration
         using TaskScope scope = new TaskScope.WhenAll(windowSize: 2);
         // add 4 tasks
         // completes
-        ActionHandle a1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle a1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
         // fails
-        ActionHandle a2 = scope.Add(async ct =>
+        ResultHandle a2 = scope.Add(async ct =>
         {
             await Task.Delay(TimeSpan.FromSeconds(1), ct);
             throw new InvalidOperationException();
         });
         // completes
-        ActionHandle a3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle a3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
         // fails
-        ActionHandle a4 = scope.Add(async ct =>
+        ResultHandle a4 = scope.Add(async ct =>
         {
             await Task.Delay(TimeSpan.FromSeconds(1), ct);
             throw new InvalidOperationException();
         });
         // default run behaviour is to fail fast and cancel
-        // so the second batch of tasks will never start
+        // so the second window of tasks will never start
         RunToken token = await scope.Run(
             new TaskScope.RunOptions
             {
@@ -99,11 +99,12 @@ public class Configuration
                 ThrowOnFault = false
             }
         );
-        // only first batch of tasks has run
-        a3.GetState(token).Should().Be(HandleState.Succeeded);
-        a4.GetState(token).Should().Be(HandleState.Faulted);
-        a1.GetState(token).Should().Be(HandleState.Terminated);
-        a2.GetState(token).Should().Be(HandleState.Terminated);
+        // only first window of tasks has run
+        a3.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
+        // second is terminated
+        a1.GetState(token).Should().Be(ResultHandleState.Terminated);
+        a2.GetState(token).Should().Be(ResultHandleState.Terminated);
 
         #endregion
     }
@@ -116,17 +117,17 @@ public class Configuration
         using TaskScope scope = new TaskScope.WhenAll(windowSize: 2);
         // add 4 tasks
         // completes
-        ActionHandle a1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle a1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
         // fails
-        ActionHandle a2 = scope.Add(async ct =>
+        ResultHandle a2 = scope.Add(async ct =>
         {
             await Task.Delay(TimeSpan.FromSeconds(1), ct);
             throw new InvalidOperationException();
         });
         // completes
-        ActionHandle a3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
+        ResultHandle a3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct));
         // fails
-        ActionHandle a4 = scope.Add(async ct =>
+        ResultHandle a4 = scope.Add(async ct =>
         {
             await Task.Delay(TimeSpan.FromSeconds(1), ct);
             throw new InvalidOperationException();
@@ -140,11 +141,11 @@ public class Configuration
                 ContinueOnFault = true
             }
         );
-        // both batches of tasks have run
-        a1.GetState(token).Should().Be(HandleState.Succeeded);
-        a2.GetState(token).Should().Be(HandleState.Faulted);
-        a3.GetState(token).Should().Be(HandleState.Succeeded);
-        a4.GetState(token).Should().Be(HandleState.Faulted);
+        // all tasks have run
+        a1.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        a2.GetState(token).Should().Be(ResultHandleState.Faulted);
+        a3.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
 
         #endregion
     }

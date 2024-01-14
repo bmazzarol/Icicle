@@ -23,7 +23,7 @@ promised value once the scope has been run.
 ```c#
 using Icicle;
 
-using var scope = new TaskScope.WhenAll();
+using TaskScope scope = new TaskScope.WhenAll();
 // add tasks to the scope
 ResultHandle<int> result1 = scope.Add(async token => {
    await Task.Delay(TimeSpan.FromMilliseconds(10), token);

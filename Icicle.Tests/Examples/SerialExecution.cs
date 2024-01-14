@@ -2,6 +2,10 @@ namespace Icicle.Tests.Examples;
 
 #region Example1
 
+/// <summary>
+/// Simple serial execution <see cref="TaskScope"/>. Provides the same
+/// behaviour as using standard async/await
+/// </summary>
 public sealed class SerialExecution : TaskScope
 {
     /// <inheritdoc />
