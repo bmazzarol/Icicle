@@ -1,6 +1,7 @@
 # When All
 
-Most common sort of concurrency requirement is run all child tasks at the same
+The most common sort of concurrency is 
+to run all child tasks at the same
 time. This is provided by @Icicle.TaskScope.WhenAll.
 
 To use it,
