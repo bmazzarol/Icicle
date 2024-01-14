@@ -1,6 +1,6 @@
 # When All
 
-The most common sort of concurrency is 
+The most common sort of concurrency is
 to run all child tasks at the same
 time. This is provided by @Icicle.TaskScope.WhenAll.
 
