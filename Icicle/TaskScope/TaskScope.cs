@@ -166,13 +166,17 @@ public abstract partial class TaskScope : IDisposable
 
     private async Task RunUnbounded(RunOptions options, CancellationToken token)
     {
-        try
+        while (true)
         {
-            await OnRun(UnboundedTaskEnumerable(token), options, token);
-        }
-        catch when (options.ContinueOnFault)
-        {
-            // swallow errors and keep running
+            try
+            {
+                await OnRun(UnboundedTaskEnumerable(token), options, token);
+                return;
+            }
+            catch when (options.ContinueOnFault)
+            {
+                // swallow errors and keep running
+            }
         }
     }
 

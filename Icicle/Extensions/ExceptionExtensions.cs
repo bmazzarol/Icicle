@@ -4,17 +4,12 @@ internal static class ExceptionExtensions
 {
     internal static Exception TryUnwrap(this Exception e)
     {
-        if (e is not AggregateException ae)
-        {
-            return e;
-        }
-
-        if (ae.InnerExceptions.Count == 1)
+        if (e is AggregateException { InnerExceptions.Count: 1 } ae)
         {
             return ae.InnerExceptions[0];
         }
 
-        return ae;
+        return e;
     }
 
     internal static bool IsTaskCanceledException(this Exception e)

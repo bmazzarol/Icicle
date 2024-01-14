@@ -285,4 +285,64 @@ public class WhenAllTests
         var token = await scope.Run(new TaskScope.RunOptions { Bounded = false });
         action.GetState(token).Should().Be(HandleState.Succeeded);
     }
+
+    [Fact(DisplayName = "`TaskScope` can collect all failures")]
+    public async Task Case13()
+    {
+        using var scope = new TaskScope.WhenAll(windowSize: 2);
+        var a1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(10), ct));
+        var a2 = scope.Add(async ct =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10), ct);
+            throw new InvalidOperationException();
+        });
+        var a3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(10), ct));
+        var a4 = scope.Add(async ct =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10), ct);
+            throw new InvalidOperationException();
+        });
+        var token = await scope.Run(
+            new TaskScope.RunOptions { ThrowOnFault = false, ContinueOnFault = true }
+        );
+        a1.GetState(token).Should().NotBe(HandleState.Faulted);
+        a2.GetState(token).Should().Be(HandleState.Faulted);
+        Throws<InvalidOperationException>(() => a2.ThrowIfFaulted(token));
+        a3.GetState(token).Should().NotBe(HandleState.Faulted);
+        a4.GetState(token).Should().Be(HandleState.Faulted);
+    }
+
+    [Fact(DisplayName = "`TaskScope` can collect all failures while unbounded")]
+    public async Task Case14()
+    {
+        using var scope = new TaskScope.WhenAll(windowSize: 2);
+        var a1 = scope.Add(async ct =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10), ct);
+            scope.Cancel();
+        });
+        var a2 = scope.Add(async ct =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10), ct);
+            throw new InvalidOperationException();
+        });
+        var a3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(10), ct));
+        var a4 = scope.Add(async ct =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10), ct);
+            throw new InvalidOperationException();
+        });
+        var token = await scope.Run(
+            new TaskScope.RunOptions
+            {
+                Bounded = false,
+                ThrowOnFault = false,
+                ContinueOnFault = true
+            }
+        );
+        a1.GetState(token).Should().Be(HandleState.Succeeded);
+        a2.GetState(token).Should().Be(HandleState.Faulted);
+        a3.GetState(token).Should().Be(HandleState.Succeeded);
+        a4.GetState(token).Should().Be(HandleState.Faulted);
+    }
 }
