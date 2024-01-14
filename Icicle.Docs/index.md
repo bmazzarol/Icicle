@@ -13,7 +13,7 @@
 [![CD Build](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml)
 [![Check Markdown](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml)
 
-Structured Concurrency for C# and dotnet
+:snowflake: Structured Concurrency for C# and dotnet
 
 ---
 

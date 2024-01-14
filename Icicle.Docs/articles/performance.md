@@ -4,9 +4,9 @@
 
 It adds the following overhead,
 
-1. A task scope is allocated
-   1. A task scope allocates a concurrent queue
-   2. A task scope allocates a run handle
+1. A task scope is allocated, and allocates,
+   1. a concurrent queue
+   2. a run handle
 2. Each child task allocates a handle and a place in the concurrent queue
 3. A task scope run allocates,
    1. a cancellation token source
@@ -15,9 +15,9 @@ It adds the following overhead,
 Compared with a simple Task.WhenAll it produces the
 following,
 
-<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD013 MD040 -->
 
-```shell
+```
 BenchmarkDotNet v0.13.12, Ubuntu 22.04.3 LTS (Jammy Jellyfish)
 Intel Core i7-4712HQ CPU 2.30GHz (Haswell), 1 CPU, 8 logical and 4 physical cores
 .NET SDK 8.0.101
@@ -39,7 +39,7 @@ Intel Core i7-4712HQ CPU 2.30GHz (Haswell), 1 CPU, 8 logical and 4 physical core
 | **BasicWhenAll** | **1000** | **4**      | **12.01 ms** | **0.031 ms** | **0.028 ms** | **1.00** | **0.00** | **31.2500** |   **-** |   **98.7 KB** |    **1.00** |
 | TaskScopeWhenAll | 1000     | 4          |     12.11 ms |     0.079 ms |     0.074 ms |     1.01 |     0.01 |     93.7500 | 31.2500 |     329.27 KB |        3.34 |
 
-<!-- markdownlint-enable MD013 -->
+<!-- markdownlint-enable MD013 MD040 -->
 
 For the features it provides I think the cost is acceptable.
 However if you are writing high performance code, or need this behaviour on a
