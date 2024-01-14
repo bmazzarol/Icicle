@@ -78,23 +78,19 @@ public abstract partial class TaskScope : IDisposable
     /// Runs all added child tasks;
     /// returning a <see cref="RunToken"/> that can be used as proof to exchange for child task results
     /// </summary>
-    /// <param name="timeout">optional timeout to apply to the run</param>
-    /// <param name="throwOnFault">
-    /// flag indicates the <see cref="Run"/> should re-throw any faults;
-    /// if false it will not throw, instead leaving the exception checking to the user via the
-    /// returned handlers; default is true
-    /// </param>
+    /// <param name="options">configuration options for <see cref="Run"/></param>
     /// <param name="token">cancellation token</param>
     /// <returns><see cref="RunToken"/></returns>
     /// <exception cref="TaskScopeCompletedException">
     /// if <see cref="Run"/> has already been called on the current <see cref="TaskScope"/>
     /// </exception>
     public virtual async ValueTask<RunToken> Run(
-        TimeSpan? timeout = default,
-        bool throwOnFault = true,
+        RunOptions? options = default,
         CancellationToken token = default
     )
     {
+        var runOptions = options ?? new RunOptions();
+
         if (!_isRunTriggered.TrySet(value: true))
         {
             throw TaskScopeCompletedException.Instance;
@@ -105,17 +101,27 @@ public abstract partial class TaskScope : IDisposable
             default
         );
 
-        if (timeout is { } time)
+        if (runOptions.Timeout is { } time)
         {
             _cancellationTokenSource.CancelAfter(time);
         }
 
         try
         {
-            while (!_cancellationTokenSource.Token.IsCancellationRequested && !_handles.IsEmpty)
+            if (runOptions.Bounded)
+            {
+                while (!_cancellationTokenSource.Token.IsCancellationRequested && !_handles.IsEmpty)
+                {
+                    await OnRun(
+                        BoundedTaskEnumerable(_cancellationTokenSource.Token),
+                        _cancellationTokenSource.Token
+                    );
+                }
+            }
+            else
             {
                 await OnRun(
-                    TaskEnumerable(_cancellationTokenSource.Token),
+                    UnboundedTaskEnumerable(_cancellationTokenSource.Token),
                     _cancellationTokenSource.Token
                 );
             }
@@ -127,7 +133,7 @@ public abstract partial class TaskScope : IDisposable
         catch (Exception e)
         {
             IsFaulted = true;
-            if (throwOnFault)
+            if (runOptions.ThrowOnFault)
             {
                 ExceptionDispatchInfo.Throw(e.TryUnwrap());
             }
@@ -144,11 +150,24 @@ public abstract partial class TaskScope : IDisposable
         return _runToken;
     }
 
-    private IEnumerable<ValueTask> TaskEnumerable(CancellationToken token)
+    private IEnumerable<ValueTask> BoundedTaskEnumerable(CancellationToken token)
     {
         while (!token.IsCancellationRequested && _handles.TryPop(out var handle))
         {
             yield return handle.Run(token);
+        }
+    }
+
+    private IEnumerable<ValueTask> UnboundedTaskEnumerable(CancellationToken token)
+    {
+        var sw = new SpinWait();
+        while (!token.IsCancellationRequested)
+        {
+            if (_handles.TryPop(out var handle))
+            {
+                yield return handle.Run(token);
+            }
+            sw.SpinOnce();
         }
     }
 
@@ -160,6 +179,18 @@ public abstract partial class TaskScope : IDisposable
     /// <param name="token">cancellation token</param>
     /// <returns><see cref="ValueTask"/> which completes when all <see cref="ValueTask"/> are complete</returns>
     protected abstract ValueTask OnRun(IEnumerable<ValueTask> tasks, CancellationToken token);
+
+    /// <summary>
+    /// Triggers cancellation on the <see cref="TaskScope"/>
+    /// </summary>
+    /// <remarks>
+    /// Can be used when building an unbounded <see cref="TaskScope"/> to trigger
+    /// and end to the <see cref="Run"/> operation
+    /// </remarks>
+    public void Cancel()
+    {
+        _cancellationTokenSource?.Cancel();
+    }
 
     /// <summary>
     /// Extension point for hooking into <see cref="IDisposable.Dispose"/>

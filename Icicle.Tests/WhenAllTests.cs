@@ -146,7 +146,7 @@ public class WhenAllTests
 
         scope.IsFaulted.Should().BeFalse();
 
-        var result = await scope.Run(throwOnFault: false);
+        var result = await scope.Run(new TaskScope.RunOptions { ThrowOnFault = false });
 
         scope.IsFaulted.Should().BeTrue();
 
@@ -211,7 +211,9 @@ public class WhenAllTests
             });
         });
 
-        var result = await scope.Run(timeout: TimeSpan.FromMilliseconds(15));
+        var result = await scope.Run(
+            new TaskScope.RunOptions { Timeout = TimeSpan.FromMilliseconds(15) }
+        );
         st2.Value(result).Value(result).Value(result).Should().Be("2");
     }
 
@@ -231,7 +233,9 @@ public class WhenAllTests
         });
 
         // run only for at most 15 ms
-        var result = await scope.Run(timeout: TimeSpan.FromMilliseconds(15));
+        var result = await scope.Run(
+            new TaskScope.RunOptions { Timeout = TimeSpan.FromMilliseconds(15) }
+        );
 
         // all value handles will be terminated
         st1.GetState(result).Should().Be(HandleState.Terminated);
@@ -253,5 +257,32 @@ public class WhenAllTests
         )
             .Message.Should()
             .Be("The current `TaskScope` has already completed");
+    }
+
+    [Fact(DisplayName = "`TaskScope` can be created for an unbounded child task context")]
+    public async Task Case12()
+    {
+        using var scope = new TaskScope.WhenAll();
+        // start a parent task
+        var action = scope.Add(async _ =>
+        {
+            await Task.Yield();
+            var sum = 0;
+            // create a while loop that stops after hitting a sum
+            while (sum < 10)
+            {
+                // create child tasks to do the summing
+                scope.Add(async _ =>
+                {
+                    await Task.Yield();
+                    Interlocked.Increment(ref sum);
+                });
+            }
+            // we have enough sum now
+            scope.Cancel();
+        });
+        // start the run operation in an unbounded manner
+        var token = await scope.Run(new TaskScope.RunOptions { Bounded = false });
+        action.GetState(token).Should().Be(HandleState.Succeeded);
     }
 }
