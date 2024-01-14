@@ -2,7 +2,7 @@ namespace Icicle.Tests.Examples;
 
 public class GettingStarted
 {
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case1()
     {
         #region Example1
@@ -19,7 +19,7 @@ public class GettingStarted
         #endregion
     }
 
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case2()
     {
         #region Example2
@@ -44,7 +44,7 @@ public class GettingStarted
         #endregion
     }
 
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case3()
     {
         #region Example3
@@ -69,7 +69,7 @@ public class GettingStarted
         #endregion
     }
 
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case4()
     {
         #region Example4

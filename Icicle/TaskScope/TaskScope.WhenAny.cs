@@ -14,6 +14,7 @@ public abstract partial class TaskScope
 #pragma warning disable AsyncFixer01
         protected override async ValueTask OnRun(
             IEnumerable<ValueTask> tasks,
+            RunOptions options,
             CancellationToken token
         )
         {

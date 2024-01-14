@@ -2,7 +2,7 @@ namespace Icicle.Tests.Examples;
 
 public class WhenAny
 {
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case1()
     {
         #region Example1

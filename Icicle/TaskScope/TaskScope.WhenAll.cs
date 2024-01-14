@@ -24,6 +24,7 @@ public abstract partial class TaskScope
         /// <inheritdoc />
         protected override async ValueTask OnRun(
             IEnumerable<ValueTask> tasks,
+            RunOptions options,
             CancellationToken token
         )
         {

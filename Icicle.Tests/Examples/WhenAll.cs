@@ -2,7 +2,7 @@ namespace Icicle.Tests.Examples;
 
 public class WhenAll
 {
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case1()
     {
         #region Example1
@@ -30,7 +30,7 @@ public class WhenAll
         #endregion
     }
 
-    [Fact(Skip = "Example only")]
+    [Example]
     public async Task Case2()
     {
         #region Example2

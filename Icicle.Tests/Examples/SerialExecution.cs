@@ -5,7 +5,11 @@ namespace Icicle.Tests.Examples;
 public sealed class SerialExecution : TaskScope
 {
     /// <inheritdoc />
-    protected override async ValueTask OnRun(IEnumerable<ValueTask> tasks, CancellationToken token)
+    protected override async ValueTask OnRun(
+        IEnumerable<ValueTask> tasks,
+        RunOptions options,
+        CancellationToken token
+    )
     {
         foreach (var task in tasks)
         {

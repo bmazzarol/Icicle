@@ -17,6 +17,7 @@ public abstract partial class TaskScope
         {
             Timeout = default;
             ThrowOnFault = true;
+            ContinueOnFault = false;
             Bounded = true;
         }
 
@@ -31,6 +32,12 @@ public abstract partial class TaskScope
         /// returned handlers; default is true
         /// </summary>
         public bool ThrowOnFault { get; init; }
+
+        /// <summary>
+        /// Flag indicates the <see cref="TaskScope.Run"/> should not stop on any faults
+        /// and should keep running child tasks until they are all attempted
+        /// </summary>
+        public bool ContinueOnFault { get; init; }
 
         /// <summary>
         /// Flag indicates that the addition of tasks via <see cref="TaskScope.Add{T}"/>

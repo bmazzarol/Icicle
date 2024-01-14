@@ -110,20 +110,11 @@ public abstract partial class TaskScope : IDisposable
         {
             if (runOptions.Bounded)
             {
-                while (!_cancellationTokenSource.Token.IsCancellationRequested && !_handles.IsEmpty)
-                {
-                    await OnRun(
-                        BoundedTaskEnumerable(_cancellationTokenSource.Token),
-                        _cancellationTokenSource.Token
-                    );
-                }
+                await RunBounded(runOptions, _cancellationTokenSource.Token);
             }
             else
             {
-                await OnRun(
-                    UnboundedTaskEnumerable(_cancellationTokenSource.Token),
-                    _cancellationTokenSource.Token
-                );
+                await RunUnbounded(runOptions, _cancellationTokenSource.Token);
             }
         }
         catch (Exception e) when (e.IsTaskCanceledException())
@@ -150,11 +141,38 @@ public abstract partial class TaskScope : IDisposable
         return _runToken;
     }
 
+    private async Task RunBounded(RunOptions options, CancellationToken token)
+    {
+        while (!token.IsCancellationRequested && !_handles.IsEmpty)
+        {
+            try
+            {
+                await OnRun(BoundedTaskEnumerable(token), options, token);
+            }
+            catch when (options.ContinueOnFault)
+            {
+                // swallow errors and keep running
+            }
+        }
+    }
+
     private IEnumerable<ValueTask> BoundedTaskEnumerable(CancellationToken token)
     {
         while (!token.IsCancellationRequested && _handles.TryPop(out var handle))
         {
             yield return handle.Run(token);
+        }
+    }
+
+    private async Task RunUnbounded(RunOptions options, CancellationToken token)
+    {
+        try
+        {
+            await OnRun(UnboundedTaskEnumerable(token), options, token);
+        }
+        catch when (options.ContinueOnFault)
+        {
+            // swallow errors and keep running
         }
     }
 
@@ -176,9 +194,14 @@ public abstract partial class TaskScope : IDisposable
     /// </summary>
     /// <remarks>this method is expected to raise errors</remarks>
     /// <param name="tasks">lazy <see cref="ValueTask"/>s to execute</param>
+    /// <param name="options">run options currently applied</param>
     /// <param name="token">cancellation token</param>
     /// <returns><see cref="ValueTask"/> which completes when all <see cref="ValueTask"/> are complete</returns>
-    protected abstract ValueTask OnRun(IEnumerable<ValueTask> tasks, CancellationToken token);
+    protected abstract ValueTask OnRun(
+        IEnumerable<ValueTask> tasks,
+        RunOptions options,
+        CancellationToken token
+    );
 
     /// <summary>
     /// Triggers cancellation on the <see cref="TaskScope"/>
@@ -202,6 +225,7 @@ public abstract partial class TaskScope : IDisposable
         {
             return;
         }
+
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
