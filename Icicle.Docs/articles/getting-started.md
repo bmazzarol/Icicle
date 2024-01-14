@@ -40,7 +40,7 @@ This enforces the following semantics,
 * Cancellation applies to tasks that are started, all other tasks that have not
   started never start
 * Values can be accessed from @Icicle.ResultHandle`1 and
-  @Icicle.ActionHandle after @Icicle.TaskScope.Run*
+  @Icicle.ResultHandle after @Icicle.TaskScope.Run*
 
   [!code-csharp[Example4](../../Icicle.Tests/Examples/GettingStarted.cs#Example4)]
   
