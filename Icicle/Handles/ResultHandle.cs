@@ -55,7 +55,7 @@ public sealed class ResultHandle : BaseHandle
 
         if (_task is { IsFaulted: true } ft)
         {
-            ExceptionDispatchInfo.Throw(ft.AsTask().Exception!.TryUnwrap());
+            ExceptionDispatchInfo.Capture(ft.AsTask().Exception!.TryUnwrap()).Throw();
         }
     }
 
@@ -139,8 +139,8 @@ public sealed class ResultHandle<T> : BaseHandle
             case { IsCompletedSuccessfully: true } st:
                 return st.Result;
             case { IsFaulted: true } ft:
-                ExceptionDispatchInfo.Throw(ft.AsTask().Exception!.TryUnwrap());
-                return default; // unreachable
+                ExceptionDispatchInfo.Capture(ft.AsTask().Exception!.TryUnwrap()).Throw();
+                return default!; // unreachable
             default:
                 throw new TaskCanceledException();
         }
@@ -185,7 +185,7 @@ public sealed class ResultHandle<T> : BaseHandle
 
         if (_task is { IsFaulted: true } ft)
         {
-            ExceptionDispatchInfo.Throw(ft.AsTask().Exception!.TryUnwrap());
+            ExceptionDispatchInfo.Capture(ft.AsTask().Exception!.TryUnwrap()).Throw();
         }
     }
 

@@ -139,7 +139,7 @@ public abstract partial class TaskScope : IDisposable
             IsScopeFaulted = true;
             if (runOptions.ThrowOnFault)
             {
-                ExceptionDispatchInfo.Throw(e.TryUnwrap());
+                ExceptionDispatchInfo.Capture(e.TryUnwrap()).Throw();
             }
         }
         finally
