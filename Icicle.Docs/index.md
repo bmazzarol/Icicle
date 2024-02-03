@@ -26,15 +26,15 @@
 simplifies concurrent code by treating
 groups of related tasks as a single unit of work.
 
-Icicle provides a @Icicle.TaskScope which can coordinate a group of concurrent
-child tasks as a single unit.
+Icicle provides a <xref:Icicle.TaskScope> which can coordinate a group of
+concurrent child tasks as a single unit.
 
 The design draws inspiration
 from [JEP 453: Structured Concurrency](https://openjdk.org/jeps/453).
 
 It effectively suspends (freezes :snowflake:) tasks, returning the user a
-@Icicle.ResultHandle`1 which represents the
-promised value once the scope has been run.
+<xref:Icicle.ResultHandle`1> which represents the promised value once the
+scope has been run.
 
 ```c#
 using Icicle;

@@ -1,10 +1,10 @@
 # Build You Own TaskScope
 
-@Icicle.TaskScope is abstract and can be implemented
+<xref:Icicle.TaskScope> is abstract and can be implemented
 to have any execution semantics that you want.
 
 It requires an implementation of a single method,
-@Icicle.TaskScope.OnRun*
+<xref:Icicle.TaskScope.OnRun*>
 which gets passed all the tasks to run.
 
 An example of a custom task scope that runs tasks in sequence
