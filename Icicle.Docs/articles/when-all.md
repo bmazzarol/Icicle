@@ -2,7 +2,7 @@
 
 The most common sort of concurrency is
 to run all child tasks at the same
-time. This is provided by @Icicle.TaskScope.WhenAll.
+time. This is provided by <xref:Icicle.TaskScope.WhenAll>.
 
 To use it,
 
@@ -10,7 +10,7 @@ To use it,
 
 ## Windowing
 
-The @Icicle.TaskScope.WhenAll supports a `windowSize` parameter
+The <xref:Icicle.TaskScope.WhenAll> supports a `windowSize` parameter
 that will enforce at most `windowSize` tasks are started at
 the same time,
 

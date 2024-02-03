@@ -1,6 +1,6 @@
 # Performance
 
-@Icicle.TaskScope performs well and has a low cost, but its not free.
+<xref:Icicle.TaskScope> performs well and has a low cost, but is not free.
 
 It adds the following overhead,
 
