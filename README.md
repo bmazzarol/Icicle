@@ -6,6 +6,7 @@
 # Icicle
 
 [:running: **_Getting Started_**](https://bmazzarol.github.io/Icicle/articles/getting-started.html)
+|
 [:books: **_Documentation_**](https://bmazzarol.github.io/Icicle)
 
 [![Nuget](https://img.shields.io/nuget/v/Icicle)](https://www.nuget.org/packages/Icicle/)
