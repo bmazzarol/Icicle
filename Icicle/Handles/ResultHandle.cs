@@ -36,7 +36,7 @@ public sealed class ResultHandle : BaseHandle
         {
             { IsCompletedSuccessfully: true } => ResultHandleState.Succeeded,
             { IsFaulted: true } => ResultHandleState.Faulted,
-            _ => ResultHandleState.Terminated
+            _ => ResultHandleState.Terminated,
         };
     }
 
@@ -115,7 +115,7 @@ public sealed class ResultHandle<T> : BaseHandle
         {
             { IsCompletedSuccessfully: true } => ResultHandleState.Succeeded,
             { IsFaulted: true } => ResultHandleState.Faulted,
-            _ => ResultHandleState.Terminated
+            _ => ResultHandleState.Terminated,
         };
     }
 
