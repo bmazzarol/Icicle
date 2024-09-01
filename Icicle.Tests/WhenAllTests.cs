@@ -335,7 +335,7 @@ public class WhenAllTests
             {
                 Bounded = false,
                 ThrowOnFault = false,
-                ContinueOnFault = true
+                ContinueOnFault = true,
             }
         );
         a1.GetState(token).Should().Be(ResultHandleState.Succeeded);

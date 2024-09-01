@@ -96,7 +96,7 @@ public class Configuration
             {
                 // this leaves the error propagation to the handles
                 // instead of throwing from run
-                ThrowOnFault = false
+                ThrowOnFault = false,
             }
         );
         // only first window of tasks has run
@@ -138,7 +138,7 @@ public class Configuration
                 ThrowOnFault = false,
                 // this will inform the scope to keep running child
                 // tasks even if a batch fails
-                ContinueOnFault = true
+                ContinueOnFault = true,
             }
         );
         // all tasks have run

@@ -24,5 +24,5 @@ public enum ResultHandleState
     /// they will also have this value; indicating that
     /// the <see cref="TaskScope"/> will never run them.
     /// </remarks>
-    Terminated
+    Terminated,
 }
