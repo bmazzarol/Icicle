@@ -29,4 +29,19 @@
     <ItemGroup>
         <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="ExceptionExtensionsTests.cs" />
+      <Compile Remove="WhenAllTests.cs" />
+      <Compile Remove="WhenAnyTests.cs" />
+      <Compile Remove="Examples\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Examples\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Examples\**" />
+    </ItemGroup>
 </Project>

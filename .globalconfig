@@ -7,3 +7,10 @@ dotnet_diagnostic.CA1848.severity = none
 
 # Add comma after the last value
 dotnet_diagnostic.MA0007.severity = none
+
+# Remove the unused private method
+dotnet_diagnostic.S1144.severity = none
+
+# Remove this unused method parameter
+dotnet_diagnostic.S1172.severity = none
+

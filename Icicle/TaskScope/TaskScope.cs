@@ -144,10 +144,7 @@ public abstract partial class TaskScope : IDisposable
         }
         finally
         {
-            if (!_cancellationTokenSource.IsCancellationRequested)
-            {
-                await _cancellationTokenSource.CancelAsync();
-            }
+            _cancellationTokenSource.Cancel();
         }
 
         IsScopeComplete = true;

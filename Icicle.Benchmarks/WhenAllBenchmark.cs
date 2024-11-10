@@ -7,39 +7,74 @@ namespace Icicle.Benchmarks;
 [DotTraceDiagnoser]
 public class WhenAllBenchmark
 {
-    [Params(100, 1000)]
+    [Params(10, 100, 1_000)]
     public int Size;
 
-    [Params(2, 4)]
-    public int AsyncRatio;
-
-    private async ValueTask<int> WorkLoad(int i, CancellationToken token = default)
-    {
-        if (i % AsyncRatio == 0)
-        {
-            await Task.Delay(TimeSpan.FromMilliseconds(10), token);
-            return 1;
-        }
-
-        return 1;
-    }
+    [Params(1, 2)]
+    public double FailureRate;
 
     [Benchmark(Baseline = true)]
     public async Task BasicWhenAll()
     {
-        var tasks = Enumerable.Range(1, Size).Select(i => WorkLoad(i).AsTask());
-        _ = await Task.WhenAll(tasks);
+        using var tcs = new CancellationTokenSource();
+        var tasks = Enumerable
+            .Range(1, Size)
+            .Select(async i =>
+            {
+                if (i % FailureRate == 0)
+                {
+                    throw new InvalidOperationException("Failure");
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(10), tcs.Token);
+                return i;
+            });
+        try
+        {
+            _ = await Task.WhenAll(tasks);
+        }
+        catch
+        {
+            //exceptions are expected
+        }
     }
 
+    private int index;
+    private TaskCancellationScope scope;
+
     [Benchmark]
-    public async Task TaskScopeWhenAll()
+    public async Task ColdTaskWithStandardWhenAll()
     {
-        using var scope = new TaskScope.WhenAll();
-        for (var i = 0; i < Size; i++)
+        using var scope = TaskCancellationScope.Create();
+        var tasks = Enumerable
+            .Range(1, Size)
+            .Select(i =>
+            {
+                index = i;
+                this.scope = scope;
+                return ColdTask
+                    .New(
+                        static async s =>
+                        {
+                            if (s.index % s.FailureRate == 0)
+                            {
+                                throw new InvalidOperationException("Failure");
+                            }
+
+                            await Task.Delay(TimeSpan.FromMilliseconds(10), s.scope);
+                            return s.index;
+                        },
+                        this
+                    )
+                    .Task;
+            });
+        try
         {
-            var i1 = i;
-            _ = scope.Add(c => WorkLoad(i1, c));
+            await Task.WhenAll(tasks);
         }
-        await scope.Run();
+        catch
+        {
+            //exceptions are expected
+        }
     }
 }

@@ -25,7 +25,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -34,19 +34,15 @@
         <LangVersion>latest</LangVersion>
         <PolyPublic>false</PolyPublic>
     </PropertyGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="Polyfill" Version="6.4.1">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="ValueTaskSupplement" Version="1.1.0" />
-    </ItemGroup>
 
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="\" />
         <None Include="..\icicles-icon.png" Pack="true" PackagePath="\" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+        <None Remove="TaskScope\**" />
+        <None Remove="Handles\**" />
+        <None Remove="Exceptions\**" />
+        <None Remove="Extensions\**" />
     </ItemGroup>
 
     <ItemGroup>
@@ -66,6 +62,20 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="TaskScope\**" />
+      <Compile Remove="Handles\**" />
+      <Compile Remove="Exceptions\**" />
+      <Compile Remove="Extensions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="TaskScope\**" />
+      <EmbeddedResource Remove="Handles\**" />
+      <EmbeddedResource Remove="Exceptions\**" />
+      <EmbeddedResource Remove="Extensions\**" />
     </ItemGroup>
 
 </Project>
