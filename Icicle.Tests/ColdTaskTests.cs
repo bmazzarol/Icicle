@@ -11,7 +11,7 @@ public sealed class ColdTaskTests
         await Task.Delay(2);
         counter.Should().Be(0);
 
-        var result = await lt.Task;
+        var result = await lt;
         result.Should().Be(42);
         return;
 
@@ -35,10 +35,10 @@ public sealed class ColdTaskTests
     {
         var ct1 = LazyAction();
 
-        var t1 = ct1.Task;
-        var t2 = ct1.Task;
+        var t1 = await ct1;
+        var t2 = await ct1;
 
-        t1.Should().BeSameAs(t2);
+        t1.Should().Be(t2);
 
         var results = await Task.WhenAll(ct1.Task, SecondLazyAction().Task);
         results.Should().BeEquivalentTo([42, 43]);
@@ -48,7 +48,7 @@ public sealed class ColdTaskTests
             ColdTask.New(async () =>
             {
                 await Task.Delay(1);
-                return await SecondLazyAction().Task - 1;
+                return await SecondLazyAction() - 1;
             });
 
         ColdTask<int> SecondLazyAction() =>
@@ -72,7 +72,7 @@ public sealed class ColdTaskTests
             ColdTask.New(async () =>
             {
                 await Task.Delay(10);
-                return await SecondLazyAction().Task - 1;
+                return await SecondLazyAction() - 1;
             });
 
         ColdTask<int> SecondLazyAction() =>

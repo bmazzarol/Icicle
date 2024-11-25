@@ -39,9 +39,6 @@ public class WhenAllBenchmark
         }
     }
 
-    private int index;
-    private TaskCancellationScope scope;
-
     [Benchmark]
     public async Task ColdTaskWithStandardWhenAll()
     {
@@ -50,22 +47,17 @@ public class WhenAllBenchmark
             .Range(1, Size)
             .Select(i =>
             {
-                index = i;
-                this.scope = scope;
                 return ColdTask
-                    .New(
-                        static async s =>
+                    .New(async () =>
+                    {
+                        if (i % FailureRate == 0)
                         {
-                            if (s.index % s.FailureRate == 0)
-                            {
-                                throw new InvalidOperationException("Failure");
-                            }
+                            throw new InvalidOperationException("Failure");
+                        }
 
-                            await Task.Delay(TimeSpan.FromMilliseconds(10), s.scope);
-                            return s.index;
-                        },
-                        this
-                    )
+                        await Task.Delay(TimeSpan.FromMilliseconds(10), scope);
+                        return i;
+                    })
                     .Task;
             });
         try
