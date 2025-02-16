@@ -39,7 +39,7 @@ public class GettingStarted
         // now run them all; should run for around a second
         var token = await scope.Run();
         // set the value to "Hello World"
-        $"{t1.Value(token)} {t2.Value(token)}".Should().Be("Hello World");
+        Assert.Equal("Hello World", $"{t1.Value(token)} {t2.Value(token)}");
 
         #endregion
     }
@@ -85,7 +85,7 @@ public class GettingStarted
             // pass it here
             token
         );
-        result.Should().Be("Hello");
+        Assert.Equal("Hello", result);
 
         #endregion
     }

@@ -1,24 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <IsPackable>false</IsPackable>
-        <RootNamespace>Icicle.Docs</RootNamespace>
-    </PropertyGroup>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Common.Docs.props', '$(MSBuildThisFileDirectory)'))"/>
 
-    <ItemGroup>
-      <Content Include=".config\dotnet-tools.json" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="articles\" />
-    </ItemGroup>
-
-    <Target Name="BuildDocs" AfterTargets="AfterBuild">
-        <Exec Command="dotnet tool restore" />
-        <Delete Files="_site" />
-        <Delete Files="api" />
-        <Exec Command="dotnet docfx metadata docfx.json" />
-        <Exec Command="dotnet docfx build docfx.json --warningsAsErrors" />
-    </Target>
 </Project>

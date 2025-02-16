@@ -1,5 +1,6 @@
 namespace Icicle.Tests.Examples;
 
+[AttributeUsage(AttributeTargets.Method)]
 public class ExampleAttribute : FactAttribute
 {
     public ExampleAttribute()

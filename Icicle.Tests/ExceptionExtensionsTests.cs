@@ -15,6 +15,6 @@ public static class ExceptionExtensionsTests
             throw ae;
         });
         var e = await Assert.ThrowsAsync<AggregateException>(async () => await scope.Run());
-        e.InnerExceptions.Should().HaveCount(2);
+        Assert.True(e.InnerExceptions.SequenceEqual(ae.InnerExceptions));
     }
 }
