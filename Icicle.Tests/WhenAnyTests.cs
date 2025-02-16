@@ -22,25 +22,26 @@ public class WhenAnyTests
             return "3.0";
         });
 
-        var token = await scope.Run();
+        var token = await scope.Run(token: TestContext.Current.CancellationToken);
 
-        st1.ValueOrDefault(token).Should().BeNull();
-        st2.ValueOrDefault(token).Should().BeNull();
-        st3.ValueOrDefault(token).Should().Be("3.0");
+        Assert.Null(st1.ValueOrDefault(token));
+        Assert.Null(st2.ValueOrDefault(token));
+        Assert.Equal("3.0", st3.ValueOrDefault(token));
     }
 
     [Fact(DisplayName = "Many `Add` actions can be done and first to complete wins")]
     public async Task Case2()
     {
         using var scope = new TaskScope.WhenAny();
-        var t1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(10), ct));
-        var t2 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(100), ct));
-        var t3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(200), ct));
+        var t1 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(100), ct));
+        var t2 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(1000), ct));
+        var t3 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(2000), ct));
         var t4 = scope.Add(async ct => await Task.Delay(TimeSpan.FromMilliseconds(1), ct));
-        var token = await scope.Run();
-        t1.GetState(token).Should().Be(ResultHandleState.Terminated);
-        t2.GetState(token).Should().Be(ResultHandleState.Terminated);
-        t3.GetState(token).Should().Be(ResultHandleState.Terminated);
-        t4.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        var token = await scope.Run(token: TestContext.Current.CancellationToken);
+
+        Assert.Equal(ResultHandleState.Terminated, t1.GetState(token));
+        Assert.Equal(ResultHandleState.Terminated, t2.GetState(token));
+        Assert.Equal(ResultHandleState.Terminated, t3.GetState(token));
+        Assert.Equal(ResultHandleState.Succeeded, t4.GetState(token));
     }
 }

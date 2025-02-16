@@ -17,7 +17,7 @@ public class Configuration
             new TaskScope.RunOptions { Timeout = TimeSpan.FromSeconds(1) }
         );
         // results in the action getting terminated
-        result.GetState(token).Should().Be(ResultHandleState.Terminated);
+        Assert.Equal(ResultHandleState.Terminated, result.GetState(token));
 
         #endregion
     }
@@ -58,10 +58,11 @@ public class Configuration
         // and it should run for 1 second
         RunToken token = await scope.Run(new TaskScope.RunOptions { Bounded = false });
         // both tasks are complete
-        workResult.GetState(token).Should().NotBe(ResultHandleState.Faulted);
-        monitorResult.GetState(token).Should().NotBe(ResultHandleState.Faulted);
+        Assert.Equal(ResultHandleState.Succeeded, workResult.GetState(token));
+        Assert.Equal(ResultHandleState.Succeeded, monitorResult.GetState(token));
         // we have done work
-        queue.Should().NotBeEmpty().And.HaveCountGreaterOrEqualTo(10);
+        Assert.True(!queue.IsEmpty);
+        Assert.True(queue.Count >= 10);
 
         #endregion
     }
@@ -100,11 +101,11 @@ public class Configuration
             }
         );
         // only first window of tasks has run
-        a3.GetState(token).Should().Be(ResultHandleState.Succeeded);
-        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
+        Assert.Equal(ResultHandleState.Succeeded, a1.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a2.GetState(token));
         // second is terminated
-        a1.GetState(token).Should().Be(ResultHandleState.Terminated);
-        a2.GetState(token).Should().Be(ResultHandleState.Terminated);
+        Assert.Equal(ResultHandleState.Terminated, a3.GetState(token));
+        Assert.Equal(ResultHandleState.Terminated, a4.GetState(token));
 
         #endregion
     }
@@ -142,10 +143,10 @@ public class Configuration
             }
         );
         // all tasks have run
-        a1.GetState(token).Should().Be(ResultHandleState.Succeeded);
-        a2.GetState(token).Should().Be(ResultHandleState.Faulted);
-        a3.GetState(token).Should().Be(ResultHandleState.Succeeded);
-        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
+        Assert.Equal(ResultHandleState.Succeeded, a1.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a2.GetState(token));
+        Assert.Equal(ResultHandleState.Succeeded, a3.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a4.GetState(token));
 
         #endregion
     }

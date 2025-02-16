@@ -26,20 +26,21 @@ public class WhenAllTests
             await Task.Delay(TimeSpan.FromMilliseconds(5), token);
         });
 
-        var result = await scope.Run();
+        var result = await scope.Run(token: TestContext.Current.CancellationToken);
 
         st1.ThrowIfFaulted(result);
         st2.ThrowIfFaulted(result);
         st3.ThrowIfFaulted(result);
         st4.ThrowIfFaulted(result);
 
-        st1.GetState(result).Should().Be(ResultHandleState.Succeeded);
-        st4.GetState(result).Should().Be(ResultHandleState.Succeeded);
+        Assert.Equal(ResultHandleState.Succeeded, st1.GetState(result));
+        Assert.Equal(ResultHandleState.Succeeded, st2.GetState(result));
 
-        st1.Value(result).Should().Be(1);
-        (await st1.AsValueTask(result)).Should().Be(1);
-        st2.Value(result).Should().Be("2");
-        st3.Value(result).Should().Be(3.0);
+        Assert.Equal(1, st1.Value(result));
+        var value2 = await st1.AsValueTask(result);
+        Assert.Equal(1, value2);
+        Assert.Equal("2", st2.Value(result));
+        Assert.Equal(3.0, st3.Value(result));
         await st4.AsValueTask(result);
     }
 
@@ -47,21 +48,21 @@ public class WhenAllTests
     public async Task Case2()
     {
         using var scope = new TaskScope.WhenAll();
-        var result = await scope.Run();
-        result.Should().NotBeNull();
+        var result = await scope.Run(token: TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
     }
 
     [Fact(DisplayName = "`Run` can only be called once")]
     public async Task Case3()
     {
         using var scope = new TaskScope.WhenAll();
-        scope.IsRunTriggered.Should().BeFalse();
-        await scope.Run();
-        scope.IsRunTriggered.Should().BeTrue();
-        var exception = await ThrowsAsync<TaskScopeCompletedException>(
-            async () => await scope.Run()
+        Assert.False(scope.IsRunTriggered);
+        await scope.Run(token: TestContext.Current.CancellationToken);
+        Assert.True(scope.IsRunTriggered);
+        var exception = await Assert.ThrowsAsync<TaskScopeCompletedException>(
+            async () => await scope.Run(token: TestContext.Current.CancellationToken)
         );
-        exception.Message.Should().Be("The current `TaskScope` has already completed");
+        Assert.Equal("The current `TaskScope` has already completed", exception.Message);
     }
 
     [Fact(DisplayName = "Many `Add` operations can be done windowed")]
@@ -84,11 +85,15 @@ public class WhenAllTests
             return 3.0;
         });
 
-        var result = await scope.Run();
+        var result = await scope.Run(token: TestContext.Current.CancellationToken);
 
-        st1.Value(result).Should().Be(1);
-        st2.Value(result).Should().Be("2");
-        st3.Value(result).Should().Be(3.0);
+        Assert.Equal(ResultHandleState.Succeeded, st1.GetState(result));
+        Assert.Equal(ResultHandleState.Succeeded, st2.GetState(result));
+        Assert.Equal(ResultHandleState.Succeeded, st3.GetState(result));
+
+        Assert.Equal(1, st1.Value(result));
+        Assert.Equal("2", st2.Value(result));
+        Assert.Equal(3.0, st3.Value(result));
     }
 
     [Fact(DisplayName = "A whole `TaskScope` can be canceled")]
@@ -111,14 +116,16 @@ public class WhenAllTests
             return 3.0;
         });
 
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
         var result = await scope.Run(token: cts.Token);
 
-        st1.GetState(result).Should().Be(ResultHandleState.Terminated);
-        Throws<TaskCanceledException>(() => st1.Value(result));
-        st2.GetState(result).Should().Be(ResultHandleState.Terminated);
-        st3.GetState(result).Should().Be(ResultHandleState.Terminated);
+        Assert.Equal(ResultHandleState.Terminated, st1.GetState(result));
+        Assert.Throws<TaskCanceledException>(() => st1.Value(result));
+        Assert.Equal(ResultHandleState.Terminated, st2.GetState(result));
+        Assert.Throws<TaskCanceledException>(() => st2.Value(result));
+        Assert.Equal(ResultHandleState.Terminated, st3.GetState(result));
+        Assert.Throws<TaskCanceledException>(() => st3.Value(result));
     }
 
     [Fact(DisplayName = "One failure will cancel all other tasks")]
@@ -142,23 +149,29 @@ public class WhenAllTests
             return 0;
         });
 
-        scope.IsScopeFaulted.Should().BeFalse();
+        Assert.False(scope.IsScopeFaulted);
 
-        var result = await scope.Run(new TaskScope.RunOptions { ThrowOnFault = false });
+        var result = await scope.Run(
+            new TaskScope.RunOptions { ThrowOnFault = false },
+            TestContext.Current.CancellationToken
+        );
 
-        scope.IsScopeFaulted.Should().BeTrue();
+        Assert.True(scope.IsScopeFaulted);
 
-        st2.GetState(result).Should().Be(ResultHandleState.Terminated);
-        st3.GetState(result).Should().Be(ResultHandleState.Terminated);
-        stFail.GetState(result).Should().Be(ResultHandleState.Faulted);
+        Assert.Equal(ResultHandleState.Terminated, st2.GetState(result));
+        Assert.Equal(ResultHandleState.Terminated, st3.GetState(result));
+        Assert.Equal(ResultHandleState.Faulted, stFail.GetState(result));
 
-        var operationException = Throws<InvalidOperationException>(
+        var operationException = Assert.Throws<InvalidOperationException>(
             () => stFail.ThrowIfFaulted(result)
         );
-        operationException.Message.Should().Be("failed");
-        operationException.StackTrace.Should().StartWith("   at Icicle.Tests.WhenAllTests.");
-
-        Throws<InvalidOperationException>(() => stFail.Value(result));
+        Assert.Equal("failed", operationException.Message);
+        Assert.StartsWith(
+            "   at Icicle.Tests.WhenAllTests.",
+            operationException.StackTrace,
+            StringComparison.Ordinal
+        );
+        Assert.Throws<InvalidOperationException>(() => stFail.Value(result));
     }
 
     [Fact(DisplayName = "Invalid `RunToken` throws")]
@@ -176,19 +189,19 @@ public class WhenAllTests
             await Task.Yield();
         });
 
-        var token1 = await scope1.Run();
-        var token2 = await scope2.Run();
+        var token1 = await scope1.Run(token: TestContext.Current.CancellationToken);
+        var token2 = await scope2.Run(token: TestContext.Current.CancellationToken);
 
-        Throws<InvalidRunTokenException>(() => st1.Value(token2))
-            .Message.Should()
-            .Be(
-                "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this handle?"
-            );
-        Throws<InvalidRunTokenException>(() => st2.ThrowIfFaulted(token1))
-            .Message.Should()
-            .Be(
-                "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this handle?"
-            );
+        var e = Assert.Throws<InvalidRunTokenException>(() => st1.Value(token2));
+        Assert.Equal(
+            "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this handle?",
+            e.Message
+        );
+        e = Assert.Throws<InvalidRunTokenException>(() => st2.ThrowIfFaulted(token1));
+        Assert.Equal(
+            "Provided `token` did not match; was it returned from the same `TaskScope.Run` call that returned this handle?",
+            e.Message
+        );
     }
 
     [Fact(DisplayName = "`TaskScope` can be captured and added to after `Run`")]
@@ -210,9 +223,13 @@ public class WhenAllTests
         });
 
         var result = await scope.Run(
-            new TaskScope.RunOptions { Timeout = TimeSpan.FromMilliseconds(15) }
+            new TaskScope.RunOptions { Timeout = TimeSpan.FromMilliseconds(15) },
+            TestContext.Current.CancellationToken
         );
-        st2.Value(result).Value(result).Value(result).Should().Be("2");
+        Assert.Equal(ResultHandleState.Succeeded, st2.GetState(result));
+        Assert.Equal(ResultHandleState.Succeeded, st2.Value(result).GetState(result));
+        Assert.Equal(ResultHandleState.Succeeded, st2.Value(result).Value(result).GetState(result));
+        Assert.Equal("2", st2.Value(result).Value(result).Value(result));
     }
 
     [Fact(DisplayName = "`TaskScope` `Run` can be given a timeout, terminating all tasks")]
@@ -232,29 +249,29 @@ public class WhenAllTests
 
         // run only for at most 15 ms
         var result = await scope.Run(
-            new TaskScope.RunOptions { Timeout = TimeSpan.FromMilliseconds(15) }
+            new TaskScope.RunOptions { Timeout = TimeSpan.FromMilliseconds(15) },
+            TestContext.Current.CancellationToken
         );
 
         // all value handles will be terminated
-        st1.GetState(result).Should().Be(ResultHandleState.Terminated);
-        st2.GetState(result).Should().Be(ResultHandleState.Terminated);
+        Assert.Equal(ResultHandleState.Terminated, st1.GetState(result));
+        Assert.Equal(ResultHandleState.Terminated, st2.GetState(result));
     }
 
     [Fact(DisplayName = "`Add` after `Run` throws")]
     public async Task Case11()
     {
         using var scope = new TaskScope.WhenAll();
-        await scope.Run();
-        Throws<TaskScopeCompletedException>(
+        await scope.Run(token: TestContext.Current.CancellationToken);
+        var e = Assert.Throws<TaskScopeCompletedException>(
             () =>
                 scope.Add(async token =>
                 {
                     await Task.Delay(TimeSpan.FromMilliseconds(30), token);
                     return 1;
                 })
-        )
-            .Message.Should()
-            .Be("The current `TaskScope` has already completed");
+        );
+        Assert.Equal("The current `TaskScope` has already completed", e.Message);
     }
 
     [Fact(DisplayName = "`TaskScope` can be created for an unbounded child task context")]
@@ -280,8 +297,11 @@ public class WhenAllTests
             scope.Cancel();
         });
         // start the run operation in an unbounded manner
-        var token = await scope.Run(new TaskScope.RunOptions { Bounded = false });
-        action.GetState(token).Should().Be(ResultHandleState.Succeeded);
+        var token = await scope.Run(
+            new TaskScope.RunOptions { Bounded = false },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(ResultHandleState.Succeeded, action.GetState(token));
     }
 
     [Fact(DisplayName = "`TaskScope` can collect all failures")]
@@ -301,13 +321,15 @@ public class WhenAllTests
             throw new InvalidOperationException();
         });
         var token = await scope.Run(
-            new TaskScope.RunOptions { ThrowOnFault = false, ContinueOnFault = true }
+            new TaskScope.RunOptions { ThrowOnFault = false, ContinueOnFault = true },
+            TestContext.Current.CancellationToken
         );
-        a1.GetState(token).Should().NotBe(ResultHandleState.Faulted);
-        a2.GetState(token).Should().Be(ResultHandleState.Faulted);
-        Throws<InvalidOperationException>(() => a2.ThrowIfFaulted(token));
-        a3.GetState(token).Should().NotBe(ResultHandleState.Faulted);
-        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
+        Assert.False(scope.IsScopeFaulted);
+        Assert.NotEqual(ResultHandleState.Faulted, a1.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a2.GetState(token));
+        Assert.Throws<InvalidOperationException>(() => a2.ThrowIfFaulted(token));
+        Assert.NotEqual(ResultHandleState.Faulted, a3.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a4.GetState(token));
     }
 
     [Fact(DisplayName = "`TaskScope` can collect all failures while unbounded")]
@@ -336,20 +358,22 @@ public class WhenAllTests
                 Bounded = false,
                 ThrowOnFault = false,
                 ContinueOnFault = true,
-            }
+            },
+            TestContext.Current.CancellationToken
         );
-        a1.GetState(token).Should().Be(ResultHandleState.Succeeded);
-        a2.GetState(token).Should().Be(ResultHandleState.Faulted);
-        a3.GetState(token).Should().Be(ResultHandleState.Succeeded);
-        a4.GetState(token).Should().Be(ResultHandleState.Faulted);
+
+        Assert.False(scope.IsScopeFaulted);
+        Assert.Equal(ResultHandleState.Succeeded, a1.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a2.GetState(token));
+        Assert.Equal(ResultHandleState.Succeeded, a3.GetState(token));
+        Assert.Equal(ResultHandleState.Faulted, a4.GetState(token));
     }
 
     [Fact(DisplayName = "`TaskScope` must be run before its disposed")]
     public void Case15()
     {
         var scope = new TaskScope.WhenAll();
-        Throws<TaskScopeNotRunException>(() => scope.Dispose())
-            .Message.Should()
-            .Be("The current `TaskScope` has not had `Run` called on it");
+        var e = Assert.Throws<TaskScopeNotRunException>(() => scope.Dispose());
+        Assert.Equal("The current `TaskScope` has not had `Run` called on it", e.Message);
     }
 }

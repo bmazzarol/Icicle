@@ -27,7 +27,7 @@ public class WhenAny
         RunToken token = await scope.Run();
         string? result =
             t1.ValueOrDefault(token) ?? t2.ValueOrDefault(token) ?? t3.ValueOrDefault(token);
-        result.Should().Be("Fast Server Result");
+        Assert.Equal("Fast Server Result", result);
 
         #endregion
     }

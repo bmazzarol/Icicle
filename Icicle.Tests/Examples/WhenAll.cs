@@ -25,7 +25,7 @@ public class WhenAll
         // get back the results
         t1.ThrowIfFaulted(token);
         string result = $"{t2.Value(token)} {t3.Value(token)}";
-        result.Should().Be("I Love Structured Concurrency!");
+        Assert.Equal("I Love Structured Concurrency!", result);
 
         #endregion
     }
