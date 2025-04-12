@@ -2,16 +2,16 @@
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-    
+    branches: [main]
+
 jobs:
   build:
     if: ${{ github.actor != 'dependabot[bot]' }}
     name: Build and analyze
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       checks: write
       pull-requests: write
     steps:
