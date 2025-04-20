@@ -62,8 +62,8 @@ public class GettingStarted
         // run them
         RunToken token = await scope.Run();
         // cannot call Add or Run from this point on
-        Assert.Throws<TaskScopeCompletedException>(
-            () => scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct))
+        Assert.Throws<TaskScopeCompletedException>(() =>
+            scope.Add(async ct => await Task.Delay(TimeSpan.FromSeconds(1), ct))
         );
 
         #endregion

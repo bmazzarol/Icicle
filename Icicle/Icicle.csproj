@@ -1,28 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <Import Project="$([MSBuild]::GetPathOfFileAbove('Common.Release.props', '$(MSBuildThisFileDirectory)'))"/>
-
-    <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <Title>Icicle</Title>
-        <Description>Structured Concurrency</Description>
-        <PackageTags>C#, Structured Concurrency</PackageTags>
-        <PackageProjectUrl>https://bmazzarol.github.io/Icicle</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/bmazzarol/Icicle</RepositoryUrl>
-        <PackageIcon>icicles-icon.png</PackageIcon>
-        <PolyPublic>false</PolyPublic>
-    </PropertyGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="Polyfill">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="ValueTaskSupplement"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="..\icicles-icon.png" Pack="true" PackagePath="\" />
-    </ItemGroup>
-
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Common.Release.props', '$(MSBuildThisFileDirectory)'))" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>Icicle</Title>
+    <Description>Structured Concurrency</Description>
+    <PackageTags>C#, Structured Concurrency</PackageTags>
+    <PackageProjectUrl>https://bmazzarol.github.io/Icicle</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bmazzarol/Icicle</RepositoryUrl>
+    <PackageIcon>icicles-icon.png</PackageIcon>
+    <PolyPublic>false</PolyPublic>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Polyfill">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="ValueTaskSupplement" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\icicles-icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
