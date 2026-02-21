@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Icicle.Benchmarks/Icicle.Benchmarks.csproj" />
+  <Project Path="Icicle.Docs/Icicle.Docs.csproj" />
+  <Project Path="Icicle.Tests/Icicle.Tests.csproj" />
+  <Project Path="Icicle/Icicle.csproj" />
+</Solution>

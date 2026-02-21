@@ -6,9 +6,10 @@ public static class ExceptionExtensionsTests
     public static async Task Case1()
     {
         using var scope = new TaskScope.WhenAll();
-        var ae = new AggregateException(
-            [new InvalidOperationException(), new InvalidOperationException()]
-        );
+        var ae = new AggregateException([
+            new InvalidOperationException(),
+            new InvalidOperationException(),
+        ]);
         scope.Add(async _ =>
         {
             await Task.Yield();
