@@ -1,15 +1,16 @@
 # Getting Started
 
-To use this library, simply include `Icicle.dll` in your project or
-grab
-it from [NuGet](https://www.nuget.org/packages/Icicle/), and add
-this to the top of each `.cs` file that needs it:
+Add the package, then use `Icicle` in each file that needs a scope,
 
-```C#
+```shell
+dotnet add package Icicle
+```
+
+```c#
 using Icicle;
 ```
 
-Now a <xref:Icicle.TaskScope> can be created.
+A <xref:Icicle.TaskScope> is created with one of the `When...` factories.
 
 A `fully parallel` scope looks like this,
 
@@ -28,19 +29,20 @@ The usage rules for <xref:Icicle.TaskScope> are as follows,
 
    [!code-csharp[Example3](../../Icicle.Tests/Examples/GettingStarted.cs#Example3)]
 
-2. <xref:Icicle.TaskScope.Run*> can only be called once, and must be called
+2. <xref:Icicle.TaskScope.Run*> can only be called once, and nothing runs
+   until it is
 
-This enforces the following semantics,
+The rules above give the scope these semantics,
 
-* All suspended tasks are only started on <xref:Icicle.TaskScope.Run*> and
-  conform to the particular execution semantics of the <xref:Icicle.TaskScope>
-  instance and its configuration. For example, a `windowSize` if provided to
-  <xref:Icicle.TaskScope.WhenAll> will run at most `windowSize` tasks at a time
-* Any Fault will trigger cancellation
-* Cancellation applies to tasks that are started, all other tasks that have not
-  started never start
-* Values can be accessed from <xref:Icicle.ResultHandle`1> and
-  <xref:Icicle.ResultHandle> after <xref:Icicle.TaskScope.Run*>
+* No child task starts until <xref:Icicle.TaskScope.Run*> is called, and each
+  one then follows the execution rules of the scope and its configuration. A
+  `windowSize` passed to <xref:Icicle.TaskScope.WhenAll> for example runs at
+  most `windowSize` tasks at a time
+* A fault in any child task cancels the scope
+* Cancellation only reaches tasks that have started; tasks that have not started
+  never do
+* Values are read from <xref:Icicle.ResultHandle`1> and
+  <xref:Icicle.ResultHandle> after <xref:Icicle.TaskScope.Run*> returns
 
   [!code-csharp[Example4](../../Icicle.Tests/Examples/GettingStarted.cs#Example4)]
   

@@ -12,7 +12,7 @@ It adds the following overhead,
    1. a cancellation token source
    2. an enumerator
 
-Compared with a simple Task.WhenAll it produces the
+Compared with `Task.WhenAll` it produces the
 following,
 
 <!-- markdownlint-disable MD013 MD040 -->
@@ -41,12 +41,10 @@ Intel Core i7-4712HQ CPU 2.30GHz (Haswell), 1 CPU, 8 logical and 4 physical core
 
 <!-- markdownlint-enable MD013 MD040 -->
 
-For the features it provides I think the cost is acceptable.
-However if you are writing high performance code, or need this behaviour on a
-hot path, a crafted solution might be better.
+For the features it provides the cost is acceptable. If the code is on a hot
+path, a hand written solution will be better.
 
-It's also very closure and delegate heavy for the caller, this is currently
-baked into the design and is not avoidable.
+The design is closure and delegate heavy for the caller, and that is not
+avoidable at the moment.
 
-I'm open to any and all performance improvement suggestions to reduce the cost
-of using this abstraction.
+Performance improvements to this abstraction are welcome.

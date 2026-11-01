@@ -26,8 +26,8 @@ An example of the default behaviour,
 
 [!code-csharp[Example3a](../../Icicle.Tests/Examples/Configuration.cs#Example3a)]
 
-However you might want to just run all child tasks regardless of failures and
-deal with all failures at the end, for example,
+Run every child task regardless of failure and handle the failures at the end
+instead,
 
 [!code-csharp[Example3b](../../Icicle.Tests/Examples/Configuration.cs#Example3b)]
 
