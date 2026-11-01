@@ -1,23 +1,14 @@
-﻿<!-- markdownlint-disable MD033 MD041 -->
-<div align="center">
-
-<img src="icicles-icon.png" alt="Icicle" width="150px"/>
+![Icicle](icicles-icon.png)
 
 # Icicle
 
-[:running: **_Getting Started_**](https://bmazzarol.github.io/Icicle/articles/getting-started.html)
-|
-[:books: **_Documentation_**](https://bmazzarol.github.io/Icicle)
+**Freeze a group of tasks into one unit of work.**
 
-[![Nuget](https://img.shields.io/nuget/v/Icicle)](https://www.nuget.org/packages/Icicle/)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Icicle&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Icicle)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Icicle&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Icicle)
-[![CD Build](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml)
-[![Check Markdown](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml)
+A TaskScope that runs related child tasks together, hands back a ResultHandle for each promised value, and succeeds or fails as a single unit.
 
-:snowflake: Structured Concurrency for C# and dotnet
+[![Nuget](https://img.shields.io/nuget/v/Icicle)](https://www.nuget.org/packages/Icicle/) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Icicle&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Icicle) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Icicle&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Icicle) [![CD Build](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml) [![Check Markdown](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml)
 
-</div>
+[:running: **_Getting Started_**](https://bmazzarol.github.io/Icicle/articles/getting-started.html) | [:books: **_Documentation_**](https://bmazzarol.github.io/Icicle/)
 
 ## Why?
 
