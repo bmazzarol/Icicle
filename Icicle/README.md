@@ -1,44 +1,70 @@
-<!-- markdownlint-disable MD013 -->
+![Icicle](https://raw.githubusercontent.com/bmazzarol/Icicle/main/icicles-icon-small.png)
 
-# ![Icicle](https://raw.githubusercontent.com/bmazzarol/Icicle/main/icicles-icon-small.png) Icicle
+# Icicle
 
-<!-- markdownlint-enable MD013 -->
+**Freeze a group of tasks into one unit of work.**
+
+A TaskScope groups related child tasks, runs them together, and returns a ResultHandle for each promised value.
 
 [![Nuget](https://img.shields.io/nuget/v/Icicle)](https://www.nuget.org/packages/Icicle/)
 
-[Structured Concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)
-simplifies concurrent code by treating
-groups of related tasks as a single unit of work.
+```shell
+dotnet add package Icicle
+```
 
-Icicle provides a `TaskScope` which can coordinate a group of concurrent child
-tasks as a single unit.
+[Getting started](https://bmazzarol.github.io/Icicle/articles/getting-started.html) - [Full documentation](https://bmazzarol.github.io/Icicle/)
 
-The design draws inspiration
-from [JEP 453: Structured Concurrency](https://openjdk.org/jeps/453).
+## Why?
 
-It effectively suspends (freezes :snowflake:) tasks, returning the user
-a `ResultHandle` which represents the
-promised value once the scope has been run.
+[Structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)
+treats a group of related tasks as one unit of work: if one task faults, the
+whole group is cancelled. Icicle provides a `TaskScope` that coordinates child
+tasks this way, drawing on
+[JEP 453: Structured Concurrency](https://openjdk.org/jeps/453).
 
-```c#
+## First example
+
+```csharp
 using Icicle;
 
 using TaskScope scope = new TaskScope.WhenAll();
-// add tasks to the scope
-ResultHandle<int> result1 = scope.Add(async token => {
-   await Task.Delay(TimeSpan.FromMilliseconds(10), token);
-   return 1; 
+
+ResultHandle<int> first = scope.Add(async token =>
+{
+    await Task.Delay(TimeSpan.FromMilliseconds(10), token);
+    return 1;
 });
-ResultHandle<string> result2 = scope.Add(async token => {
-   await Task.Delay(TimeSpan.FromMilliseconds(10), token);
-   return "2"; 
+
+ResultHandle<string> second = scope.Add(async token =>
+{
+    await Task.Delay(TimeSpan.FromMilliseconds(10), token);
+    return "2";
 });
-// run all tasks
+
 RunToken result = await scope.Run();
-// and access their values
-int value1 = result1.Value(result);
-string value2 = result2.Value(result);
+
+int value = first.Value(result);
+string text = second.Value(result);
 ```
 
-For more details/information read the docs or have a look at the test
-projects or create an issue.
+Nothing runs until `Run` is called. A fault in any child task cancels the scope,
+and cancellation only reaches tasks that have started.
+
+## Scopes
+
+- `TaskScope.WhenAll` waits for every task, optionally in windows of a given size
+- `TaskScope.WhenAny` stops at the first task to finish
+
+## What it does not do
+
+- It is not a scheduler. Tasks run when the scope is run, not at a set time
+- It does not pool or reuse threads; the scope uses ordinary `Task` execution
+- It is not a general promise library. Results are readable only through the
+  `RunToken` the scope returns
+
+## See also
+
+- [Getting started](https://bmazzarol.github.io/Icicle/articles/getting-started.html)
+- [When All](https://bmazzarol.github.io/Icicle/articles/when-all.html)
+- [When Any](https://bmazzarol.github.io/Icicle/articles/when-any.html)
+- [Configuration](https://bmazzarol.github.io/Icicle/articles/configuration.html)
