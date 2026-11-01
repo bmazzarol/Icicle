@@ -4,7 +4,7 @@
 
 **Freeze a group of tasks into one unit of work.**
 
-A TaskScope that runs related child tasks together, hands back a ResultHandle for each promised value, and succeeds or fails as a single unit.
+A TaskScope groups related child tasks, runs them together, and returns a ResultHandle for each promised value.
 
 [![Nuget](https://img.shields.io/nuget/v/Icicle)](https://www.nuget.org/packages/Icicle/) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Icicle&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Icicle) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmazzarol_Icicle&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmazzarol_Icicle) [![CD Build](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/cd-build.yml) [![Check Markdown](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml/badge.svg)](https://github.com/bmazzarol/Icicle/actions/workflows/check-markdown.yml)
 
